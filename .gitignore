@@ -54,11 +54,13 @@ htmlcov/
 # Jupyter Notebook
 .ipynb_checkpoints
 
-# ML Models
-*.pkl
+# ML Models — keep project models, ignore external ones
 *.joblib
 *.h5
 *.hdf5
+# Keep our trained models
+!prediction_app/ml_models/*.pkl
+!prediction_app/ml_models/scalers/*.pkl
 
 # Database dumps
 *.dump
