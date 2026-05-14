@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}My Profile - MEDIPREDICT{% endblock %}
+{% block extra_css %}<style>
+.profile-page{padding:0 0 4rem;background:#f8fafc;min-height:100vh;}
+.profile-hero{background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 60%,#06b6d4 100%);padding:2.5rem 1.5rem;margin-bottom:2rem;}
+.profile-hero-inner{max-width:900px;margin:0 auto;display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;}
+.avatar-circle{width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,.25);border:3px solid rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:800;color:white;flex-shrink:0;}
+.hero-info h1{font-size:1.625rem;font-weight:800;color:white;margin-bottom:.25rem;}
+.hero-info p{color:rgba(255,255,255,.8);font-size:.9rem;}
+.hero-badges{display:flex;gap:.5rem;margin-top:.75rem;flex-wrap:wrap;}
+.hero-badge{padding:.3rem .875rem;border-radius:999px;font-size:.75rem;font-weight:600;background:rgba(255,255,255,.2);color:white;border:1px solid rgba(255,255,255,.3);}
+.container{max-width:900px;margin:0 auto;padding:0 1.5rem;}
+.profile-grid{display:grid;grid-template-columns:1fr 280px;gap:1.5rem;}
+@media(max-width:800px){.profile-grid{grid-template-columns:1fr;}}
+.card{background:white;border-radius:1rem;box-shadow:0 4px 16px rgba(0,0,0,.07);overflow:hidden;margin-bottom:1.25rem;}
+.card-header{padding:1.1rem 1.5rem;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:.6rem;}
+.card-header h3{font-size:.95rem;font-weight:700;color:#111827;}
+.card-header i{color:#6366f1;}
+.card-body{padding:1.5rem;}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;}
+.fg{display:flex;flex-direction:column;gap:.35rem;}
+.fg label{font-size:.78rem;font-weight:600;color:#374151;}
+.fg input,.fg select,.fg textarea{padding:.65rem .875rem;border:1.5px solid #e5e7eb;border-radius:.5rem;font-size:.875rem;font-family:inherit;color:#111827;background:#fafafa;outline:none;transition:all .15s;width:100%;}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:#6366f1;background:white;box-shadow:0 0 0 3px rgba(99,102,241,.1);}
+.btn-save{padding:.75rem 1.75rem;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:white;border:none;border-radius:.625rem;font-size:.9rem;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:.5rem;transition:all .2s;margin-top:1rem;}
+.btn-save:hover{opacity:.92;transform:translateY(-1px);}
+.btn-danger{padding:.75rem 1.75rem;background:#fef2f2;color:#dc2626;border:1.5px solid #fecaca;border-radius:.625rem;font-size:.9rem;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:.5rem;transition:all .2s;margin-top:.5rem;width:100%;justify-content:center;}
+.btn-danger:hover{background:#fee2e2;}
+.stat-mini{display:flex;align-items:center;justify-content:space-between;padding:.75rem 0;border-bottom:1px solid #f3f4f6;}
+.stat-mini:last-child{border-bottom:none;}
+.stat-mini-label{font-size:.82rem;color:#6b7280;}
+.stat-mini-val{font-size:.9rem;font-weight:700;color:#111827;}
+.activity-item{display:flex;align-items:flex-start;gap:.875rem;padding:.75rem 0;border-bottom:1px solid #f9fafb;}
+.activity-item:last-child{border-bottom:none;}
+.act-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;background:#e0e7ff;color:#6366f1;}
+.act-text{font-size:.82rem;color:#374151;font-weight:500;}
+.act-time{font-size:.72rem;color:#9ca3af;margin-top:.15rem;}
+.bmi-badge{display:inline-flex;align-items:center;gap:.4rem;padding:.4rem .875rem;border-radius:999px;font-size:.8rem;font-weight:700;margin-top:.5rem;}
+.bmi-normal{background:#dcfce7;color:#15803d;}
+.bmi-overweight{background:#fef3c7;color:#b45309;}
+.bmi-obese{background:#fee2e2;color:#b91c1c;}
+.bmi-underweight{background:#e0f2fe;color:#0369a1;}
+.quick-link{display:flex;align-items:center;gap:.6rem;padding:.75rem;border-radius:.625rem;text-decoration:none;font-size:.85rem;font-weight:600;color:#374151;transition:all .15s;border:1.5px solid #e5e7eb;margin-bottom:.5rem;}
+.quick-link:hover{border-color:#6366f1;color:#6366f1;background:#f5f3ff;}
+.quick-link i{width:18px;text-align:center;color:#6366f1;}
+</style>{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+  <!-- Hero -->
+  <div class="profile-hero">
+    <div class="profile-hero-inner">
+      <div class="avatar-circle">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>
+      <div class="hero-info">
+        <h1>{{ user.get_full_name|default:user.username }}</h1>
+        <p>{{ user.email }}</p>
+        <div class="hero-badges">
+          <span class="hero-badge"><i class="fas fa-user"></i> Patient</span>
+          {% if user.is_verified %}<span class="hero-badge"><i class="fas fa-check-circle"></i> Verified</span>{% endif %}
+          <span class="hero-badge">Joined {{ user.date_joined|date:"M Y" }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="profile-grid">
+      <!-- Left: Forms -->
+      <div>
+        <!-- Personal Info -->
+        <div class="card">
+          <div class="card-header"><i class="fas fa-user"></i><h3>Personal Information</h3></div>
+          <div class="card-body">
+            <form method="POST" enctype="multipart/form-data">
+              {% csrf_token %}
+              <div class="form-grid">
+                <div class="fg"><label>First Name</label>{{ form.first_name }}</div>
+                <div class="fg"><label>Last Name</label>{{ form.last_name }}</div>
+                <div class="fg"><label>Email</label>{{ form.email }}</div>
+                <div class="fg"><label>Phone</label>{{ form.phone_number }}</div>
+                <div class="fg"><label>Date of Birth</label>{{ form.date_of_birth }}</div>
+                <div class="fg"><label>Gender</label>{{ form.gender }}</div>
+                <div class="fg"><label>Blood Type</label>{{ form.blood_type }}</div>
+                <div class="fg"><label>Height (cm)</label>{{ form.height }}</div>
+                <div class="fg"><label>Weight (kg)</label>{{ form.weight }}</div>
+              </div>
+              {% if bmi %}
+              <div style="margin-top:1rem;">
+                <span style="font-size:.82rem;color:#6b7280;">BMI: <strong>{{ bmi|floatformat:1 }}</strong></span>
+                <span class="bmi-badge {% if bmi_category == 'Normal' %}bmi-normal{% elif bmi_category == 'Overweight' %}bmi-overweight{% elif bmi_category == 'Obese' %}bmi-obese{% else %}bmi-underweight{% endif %}">
+                  {{ bmi_category }}
+                </span>
+              </div>
+              {% endif %}
+              <button type="submit" class="btn-save"><i class="fas fa-save"></i> Save Changes</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Change Password -->
+        <div class="card">
+          <div class="card-header"><i class="fas fa-lock"></i><h3>Security</h3></div>
+          <div class="card-body">
+            <a href="{% url 'users_app:change_password' %}" class="quick-link"><i class="fas fa-key"></i> Change Password</a>
+          </div>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="card">
+          <div class="card-header"><i class="fas fa-exclamation-triangle" style="color:#dc2626;"></i><h3>Danger Zone</h3></div>
+          <div class="card-body">
+            <p style="font-size:.85rem;color:#6b7280;margin-bottom:.75rem;">Permanently delete your account and all associated data. This action cannot be undone.</p>
+            <form method="POST" action="{% url 'users_app:delete_account' %}" onsubmit="return confirm('Are you sure? This cannot be undone.')">
+              {% csrf_token %}
+              <button type="submit" class="btn-danger"><i class="fas fa-trash"></i> Delete Account</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Sidebar -->
+      <div>
+        <!-- Quick Stats -->
+        <div class="card">
+          <div class="card-header"><i class="fas fa-chart-bar"></i><h3>Your Stats</h3></div>
+          <div class="card-body" style="padding-top:.5rem;padding-bottom:.5rem;">
+            <div class="stat-mini"><span class="stat-mini-label">Age</span><span class="stat-mini-val">{{ age|default:"—" }} yrs</span></div>
+            <div class="stat-mini"><span class="stat-mini-label">BMI</span><span class="stat-mini-val">{{ bmi|floatformat:1|default:"—" }}</span></div>
+            <div class="stat-mini"><span class="stat-mini-label">Blood Type</span><span class="stat-mini-val">{{ user.blood_type|default:"—" }}</span></div>
+          </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="card">
+          <div class="card-header"><i class="fas fa-link"></i><h3>Quick Links</h3></div>
+          <div class="card-body">
+            <a href="{% url 'prediction_app:dashboard' %}" class="quick-link"><i class="fas fa-th-large"></i> Dashboard</a>
+            <a href="{% url 'prediction_app:history' %}" class="quick-link"><i class="fas fa-history"></i> Prediction History</a>
+            <a href="{% url 'prediction_app:reports' %}" class="quick-link"><i class="fas fa-file-medical"></i> Health Reports</a>
+          </div>
+        </div>
+
+        <!-- Recent Activity -->
+        {% if activities %}
+        <div class="card">
+          <div class="card-header"><i class="fas fa-clock"></i><h3>Recent Activity</h3></div>
+          <div class="card-body" style="padding-top:.5rem;padding-bottom:.5rem;">
+            {% for act in activities %}
+            <div class="activity-item">
+              <div class="act-icon"><i class="fas fa-{% if act.activity_type == 'login' %}sign-in-alt{% elif act.activity_type == 'logout' %}sign-out-alt{% elif act.activity_type == 'profile_update' %}user-edit{% else %}cog{% endif %}"></i></div>
+              <div>
+                <div class="act-text">{{ act.get_activity_type_display|default:act.activity_type|title }}</div>
+                <div class="act-time">{{ act.timestamp|timesince }} ago</div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

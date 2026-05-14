@@ -1,0 +1,124 @@
+{% extends 'prediction_app/base.html' %}
+{% load static %}
+{% block title %}Health Reports - MEDIPREDICT{% endblock %}
+{% block extra_css %}<style>
+.reports-page{padding:0 0 4rem;background:#f8fafc;min-height:100vh;}
+.page-hero{background:linear-gradient(135deg,#0f766e 0%,#0d9488 60%,#14b8a6 100%);padding:2.5rem 1.5rem;text-align:center;margin-bottom:2rem;}
+.page-hero h1{font-size:2rem;font-weight:800;color:white;margin-bottom:.4rem;}
+.page-hero p{color:rgba(255,255,255,.8);}
+.container{max-width:1100px;margin:0 auto;padding:0 1.5rem;}
+.top-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;}
+.btn-gen{display:inline-flex;align-items:center;gap:.5rem;padding:.75rem 1.5rem;background:linear-gradient(135deg,#0f766e,#0d9488);color:white;border:none;border-radius:.625rem;font-size:.9rem;font-weight:700;cursor:pointer;font-family:inherit;text-decoration:none;transition:all .2s;}
+.btn-gen:hover{opacity:.9;transform:translateY(-1px);}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.75rem;}
+@media(max-width:800px){.stats-row{grid-template-columns:repeat(2,1fr);}}
+.stat-box{background:white;border-radius:.875rem;padding:1.25rem;box-shadow:0 4px 16px rgba(0,0,0,.07);border-top:4px solid;}
+.stat-box.teal{border-color:#0d9488;}.stat-box.blue{border-color:#6366f1;}.stat-box.amber{border-color:#f59e0b;}.stat-box.red{border-color:#ef4444;}
+.stat-num{font-size:2rem;font-weight:800;color:#111827;line-height:1;}
+.stat-label{font-size:.78rem;color:#6b7280;margin-top:.3rem;font-weight:500;}
+.reports-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.25rem;}
+.report-card{background:white;border-radius:1rem;box-shadow:0 4px 16px rgba(0,0,0,.07);overflow:hidden;transition:all .2s;}
+.report-card:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,.1);}
+.rc-header{padding:1.25rem 1.5rem;display:flex;align-items:center;justify-content:space-between;}
+.rc-date{font-size:.8rem;color:#6b7280;}
+.risk-pill{padding:.3rem .875rem;border-radius:999px;font-size:.78rem;font-weight:700;}
+.risk-low{background:#dcfce7;color:#15803d;}
+.risk-moderate{background:#fef3c7;color:#b45309;}
+.risk-high{background:#fee2e2;color:#b91c1c;}
+.risk-critical{background:#fce7f3;color:#9d174d;}
+.rc-body{padding:0 1.5rem 1.25rem;}
+.rc-score{display:flex;align-items:center;gap:1rem;margin-bottom:1rem;}
+.score-circle{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:800;flex-shrink:0;}
+.sc-low{background:#dcfce7;color:#15803d;}
+.sc-moderate{background:#fef3c7;color:#b45309;}
+.sc-high{background:#fee2e2;color:#b91c1c;}
+.sc-critical{background:#fce7f3;color:#9d174d;}
+.score-info h4{font-size:.9rem;font-weight:700;color:#111827;margin-bottom:.2rem;}
+.score-info p{font-size:.8rem;color:#6b7280;}
+.rc-footer{padding:.875rem 1.5rem;background:#f9fafb;border-top:1px solid #f3f4f6;display:flex;gap:.5rem;}
+.btn-sm{padding:.4rem .875rem;border-radius:.5rem;font-size:.78rem;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem;transition:all .15s;border:none;cursor:pointer;font-family:inherit;}
+.btn-view{background:#e0e7ff;color:#4338ca;}
+.btn-view:hover{background:#c7d2fe;}
+.btn-dl{background:#dcfce7;color:#15803d;}
+.btn-dl:hover{background:#bbf7d0;}
+.empty-state{text-align:center;padding:4rem 2rem;background:white;border-radius:1rem;box-shadow:0 4px 16px rgba(0,0,0,.07);}
+.empty-icon{width:72px;height:72px;background:#ccfbf1;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.75rem;color:#0d9488;margin:0 auto 1rem;}
+.empty-state h3{font-size:1.1rem;font-weight:700;color:#111827;margin-bottom:.5rem;}
+.empty-state p{color:#6b7280;font-size:.9rem;margin-bottom:1.5rem;}
+</style>{% endblock %}
+
+{% block content %}
+<div class="reports-page">
+  <div class="page-hero">
+    <h1><i class="fas fa-file-medical"></i> Health Reports</h1>
+    <p>Your comprehensive AI-generated health assessments</p>
+  </div>
+  <div class="container">
+    <div class="top-row">
+      <div>
+        <h2 style="font-size:1.1rem;font-weight:700;color:#111827;">All Reports</h2>
+        <p style="font-size:.85rem;color:#6b7280;">{{ total_reports|default:0 }} report{{ total_reports|pluralize }} generated</p>
+      </div>
+      {% if can_generate_report %}
+      <button class="btn-gen" onclick="generateReport()"><i class="fas fa-plus"></i> Generate New Report</button>
+      {% endif %}
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-box teal"><div class="stat-num">{{ total_reports|default:0 }}</div><div class="stat-label">Total Reports</div></div>
+      <div class="stat-box blue"><div class="stat-num">{% for r in risk_distribution %}{% if r.risk_level == 'low' %}{{ r.count }}{% endif %}{% endfor %}</div><div class="stat-label">Low Risk</div></div>
+      <div class="stat-box amber"><div class="stat-num">{% for r in risk_distribution %}{% if r.risk_level == 'moderate' %}{{ r.count }}{% endif %}{% endfor %}</div><div class="stat-label">Moderate Risk</div></div>
+      <div class="stat-box red"><div class="stat-num">{% for r in risk_distribution %}{% if r.risk_level == 'high' or r.risk_level == 'critical' %}{{ r.count }}{% endif %}{% endfor %}</div><div class="stat-label">High Risk</div></div>
+    </div>
+
+    {% if reports %}
+    <div class="reports-grid">
+      {% for report in reports %}
+      <div class="report-card">
+        <div class="rc-header">
+          <span class="rc-date"><i class="fas fa-calendar" style="margin-right:.3rem;"></i>{{ report.report_date|date:"M d, Y" }}</span>
+          <span class="risk-pill risk-{{ report.risk_level }}">{{ report.get_risk_level_display }}</span>
+        </div>
+        <div class="rc-body">
+          <div class="rc-score">
+            <div class="score-circle sc-{{ report.risk_level }}">{{ report.overall_risk_score|floatformat:0 }}%</div>
+            <div class="score-info">
+              <h4>Overall Risk Score</h4>
+              <p>Generated by {{ report.get_generated_by_display }}</p>
+            </div>
+          </div>
+          {% if report.recommendations %}
+          <p style="font-size:.82rem;color:#4b5563;line-height:1.6;">{{ report.recommendations|truncatechars:120 }}</p>
+          {% endif %}
+        </div>
+        <div class="rc-footer">
+          <a href="{% url 'prediction_app:report_detail' report.pk %}" class="btn-sm btn-view"><i class="fas fa-eye"></i> View</a>
+          <a href="{% url 'prediction_app:download_report' report.pk %}" class="btn-sm btn-dl"><i class="fas fa-download"></i> Download</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon"><i class="fas fa-file-medical"></i></div>
+      <h3>No reports yet</h3>
+      <p>Make some predictions first, then generate your first health report.</p>
+      <a href="{% url 'prediction_app:diabetes' %}" style="display:inline-flex;align-items:center;gap:.5rem;padding:.75rem 1.5rem;background:linear-gradient(135deg,#0f766e,#0d9488);color:white;border-radius:.625rem;font-weight:700;font-size:.9rem;text-decoration:none;">
+        <i class="fas fa-heartbeat"></i> Start Predicting
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+<script>
+function generateReport() {
+  fetch("{% url 'prediction_app:generate_report' %}", {
+    method: 'POST',
+    headers: {'X-CSRFToken': '{{ csrf_token }}'}
+  }).then(r => r.json()).then(d => {
+    if(d.success) { alert('Report generation started! Refresh in a moment.'); }
+    else { alert('Error: ' + d.error); }
+  });
+}
+</script>
+{% endblock %}

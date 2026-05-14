@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Verify Your Email</title></head>
+<body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <h2 style="color: #2c7be5;">Verify Your Email Address</h2>
+    <p>Hi {{ user.first_name|default:user.username }},</p>
+    <p>Please click the button below to verify your email address:</p>
+    <p style="text-align: center; margin: 30px 0;">
+        <a href="{{ verification_url }}" style="background-color: #2c7be5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px;">
+            Verify Email
+        </a>
+    </p>
+    <p>If you didn't create an account, you can ignore this email.</p>
+    <br>
+    <p>Best regards,<br>The MEDIPREDICT Team</p>
+</body>
+</html>

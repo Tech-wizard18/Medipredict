@@ -1,0 +1,341 @@
+{% extends 'prediction_app/base.html' %}
+{% load static %}
+{% block title %}Prediction History - MEDIPREDICT{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+  --p: #6366f1; --pd: #4f46e5; --pl: #e0e7ff;
+  --s: #10b981; --w: #f59e0b; --d: #ef4444;
+  --g1: #f9fafb; --g2: #f3f4f6; --g3: #e5e7eb;
+  --t1: #111827; --t2: #374151; --t3: #6b7280;
+  --r: 0.875rem; --sh: 0 4px 20px rgba(0,0,0,0.07);
+}
+.history-page { padding: 2.5rem 0 4rem; background: var(--g1); min-height: 100vh; }
+
+/* Header */
+.page-hero {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 60%, #06b6d4 100%);
+  padding: 2.5rem 1.5rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+.page-hero h1 { font-size: 2rem; font-weight: 800; color: white; margin-bottom: 0.4rem; }
+.page-hero p { color: rgba(255,255,255,0.8); font-size: 1rem; }
+
+/* Stats row */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+@media(max-width:900px){ .stats-row { grid-template-columns: repeat(2,1fr); } }
+@media(max-width:500px){ .stats-row { grid-template-columns: 1fr 1fr; } }
+.stat-box {
+  background: white;
+  border-radius: var(--r);
+  padding: 1.25rem 1rem;
+  text-align: center;
+  box-shadow: var(--sh);
+  border-top: 4px solid;
+}
+.stat-box.blue  { border-color: #6366f1; }
+.stat-box.green { border-color: #10b981; }
+.stat-box.amber { border-color: #f59e0b; }
+.stat-box.red   { border-color: #ef4444; }
+.stat-box-num { font-size: 2rem; font-weight: 800; color: var(--t1); line-height: 1; }
+.stat-box-label { font-size: 0.78rem; color: var(--t3); margin-top: 0.3rem; font-weight: 500; }
+
+/* Filters */
+.filters-card {
+  background: white;
+  border-radius: var(--r);
+  padding: 1.25rem 1.5rem;
+  box-shadow: var(--sh);
+  margin-bottom: 1.5rem;
+}
+.filters-card form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  align-items: end;
+}
+.filter-group label { font-size: 0.78rem; font-weight: 600; color: var(--t2); display: block; margin-bottom: 0.35rem; }
+.filter-input {
+  width: 100%; padding: 0.6rem 0.875rem;
+  border: 1.5px solid var(--g3); border-radius: 0.5rem;
+  font-size: 0.875rem; font-family: inherit; color: var(--t1);
+  background: var(--g1); outline: none; transition: all 0.15s;
+}
+.filter-input:focus { border-color: var(--p); background: white; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+.btn-filter {
+  padding: 0.6rem 1.25rem;
+  background: linear-gradient(135deg, var(--p), #8b5cf6);
+  color: white; border: none; border-radius: 0.5rem;
+  font-size: 0.875rem; font-weight: 600; cursor: pointer;
+  font-family: inherit; transition: all 0.15s;
+  display: flex; align-items: center; gap: 0.4rem;
+}
+.btn-filter:hover { opacity: 0.9; }
+.btn-reset {
+  padding: 0.6rem 1rem;
+  background: var(--g2); color: var(--t2);
+  border: 1.5px solid var(--g3); border-radius: 0.5rem;
+  font-size: 0.875rem; font-weight: 600; cursor: pointer;
+  font-family: inherit; transition: all 0.15s;
+  text-decoration: none; display: flex; align-items: center; gap: 0.4rem;
+}
+.btn-reset:hover { background: var(--g3); }
+
+/* Table card */
+.table-card {
+  background: white;
+  border-radius: var(--r);
+  box-shadow: var(--sh);
+  overflow: hidden;
+}
+.table-card-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--g2);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 0.75rem;
+}
+.table-card-header h3 { font-size: 1rem; font-weight: 700; color: var(--t1); }
+.table-card-header span { font-size: 0.8rem; color: var(--t3); }
+
+table { width: 100%; border-collapse: collapse; }
+thead tr { background: var(--g1); }
+thead th {
+  padding: 0.875rem 1.25rem;
+  font-size: 0.75rem; font-weight: 700;
+  color: var(--t3); text-transform: uppercase;
+  letter-spacing: 0.05em; text-align: left;
+  border-bottom: 1px solid var(--g2);
+}
+tbody tr { border-bottom: 1px solid var(--g2); transition: background 0.1s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: #fafbff; }
+tbody td { padding: 1rem 1.25rem; font-size: 0.875rem; color: var(--t2); vertical-align: middle; }
+
+.disease-badge {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.3rem 0.75rem; border-radius: 999px;
+  font-size: 0.78rem; font-weight: 600;
+}
+.db-diabetes  { background: #dbeafe; color: #1d4ed8; }
+.db-heart     { background: #ffe4e6; color: #be123c; }
+.db-kidney    { background: #dcfce7; color: #15803d; }
+.db-parkinson { background: #ede9fe; color: #6d28d9; }
+.db-breast_cancer { background: #fce7f3; color: #9d174d; }
+.db-liver     { background: #fef3c7; color: #b45309; }
+
+.result-badge {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  padding: 0.3rem 0.75rem; border-radius: 999px;
+  font-size: 0.78rem; font-weight: 700;
+}
+.rb-positive { background: #fef2f2; color: #dc2626; }
+.rb-negative { background: #f0fdf4; color: #16a34a; }
+
+.conf-bar-wrap { display: flex; align-items: center; gap: 0.6rem; }
+.conf-bar { flex: 1; height: 6px; background: var(--g2); border-radius: 999px; overflow: hidden; min-width: 60px; }
+.conf-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--p), #8b5cf6); }
+.conf-text { font-size: 0.78rem; font-weight: 600; color: var(--t2); white-space: nowrap; }
+
+.action-btn {
+  padding: 0.35rem 0.75rem;
+  border-radius: 0.4rem;
+  font-size: 0.78rem; font-weight: 600;
+  text-decoration: none; transition: all 0.15s;
+  display: inline-flex; align-items: center; gap: 0.3rem;
+}
+.ab-view { background: var(--pl); color: var(--pd); }
+.ab-view:hover { background: #c7d2fe; }
+
+/* Empty state */
+.empty-state {
+  text-align: center; padding: 4rem 2rem;
+}
+.empty-icon {
+  width: 80px; height: 80px;
+  background: linear-gradient(135deg, var(--pl), #e0f2fe);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2rem; color: var(--p);
+  margin: 0 auto 1.25rem;
+}
+.empty-state h3 { font-size: 1.1rem; font-weight: 700; color: var(--t1); margin-bottom: 0.5rem; }
+.empty-state p { color: var(--t3); font-size: 0.9rem; margin-bottom: 1.5rem; }
+.btn-start {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, var(--p), #8b5cf6);
+  color: white; border-radius: 0.625rem;
+  font-weight: 700; font-size: 0.9rem; text-decoration: none;
+  transition: all 0.2s;
+}
+.btn-start:hover { opacity: 0.9; transform: translateY(-1px); }
+
+/* Pagination */
+.pagination { display: flex; justify-content: center; gap: 0.4rem; padding: 1.25rem; }
+.page-btn {
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 0.5rem; font-size: 0.875rem; font-weight: 600;
+  text-decoration: none; transition: all 0.15s;
+  border: 1.5px solid var(--g3); color: var(--t2); background: white;
+}
+.page-btn:hover { border-color: var(--p); color: var(--p); }
+.page-btn.active { background: var(--p); color: white; border-color: var(--p); }
+.page-btn.disabled { opacity: 0.4; pointer-events: none; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="history-page">
+
+  <!-- Hero -->
+  <div class="page-hero">
+    <h1><i class="fas fa-history"></i> Prediction History</h1>
+    <p>All your past disease predictions in one place</p>
+  </div>
+
+  <div class="container">
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-box blue">
+        <div class="stat-box-num">{{ total_count|default:0 }}</div>
+        <div class="stat-box-label">Total Predictions</div>
+      </div>
+      <div class="stat-box green">
+        <div class="stat-box-num">{{ positive_count|default:0 }}</div>
+        <div class="stat-box-label">Positive Results</div>
+      </div>
+      <div class="stat-box amber">
+        <div class="stat-box-num">{{ average_confidence|floatformat:0|default:0 }}%</div>
+        <div class="stat-box-label">Avg Confidence</div>
+      </div>
+      <div class="stat-box red">
+        <div class="stat-box-num">{{ filtered_count|default:0 }}</div>
+        <div class="stat-box-label">Filtered Results</div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-card">
+      <form method="GET">
+        <div class="filter-group">
+          <label>Disease</label>
+          <select name="disease" class="filter-input">
+            <option value="">All Diseases</option>
+            {% for dt in disease_types %}
+            <option value="{{ dt.name }}" {% if selected_disease == dt.name %}selected{% endif %}>{{ dt.get_name_display }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>From Date</label>
+          <input type="date" name="date_from" class="filter-input" value="{{ date_from }}">
+        </div>
+        <div class="filter-group">
+          <label>To Date</label>
+          <input type="date" name="date_to" class="filter-input" value="{{ date_to }}">
+        </div>
+        <div class="filter-group" style="display:flex;gap:0.5rem;align-items:flex-end;">
+          <button type="submit" class="btn-filter"><i class="fas fa-filter"></i> Filter</button>
+          <a href="{% url 'prediction_app:history' %}" class="btn-reset"><i class="fas fa-times"></i> Reset</a>
+        </div>
+      </form>
+    </div>
+
+    <!-- Table -->
+    <div class="table-card">
+      <div class="table-card-header">
+        <h3><i class="fas fa-list" style="color:var(--p);margin-right:0.4rem;"></i> Results</h3>
+        <span>{{ filtered_count|default:0 }} prediction{{ filtered_count|pluralize }}</span>
+      </div>
+
+      {% if predictions %}
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Disease</th>
+              <th>Result</th>
+              <th>Confidence</th>
+              <th>Date</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for pred in predictions %}
+            <tr>
+              <td style="color:var(--t3);font-weight:600;">{{ forloop.counter }}</td>
+              <td>
+                <span class="disease-badge db-{{ pred.disease_model.name }}">
+                  {% if pred.disease_model.name == 'diabetes' %}<i class="fas fa-tint"></i>
+                  {% elif pred.disease_model.name == 'heart' %}<i class="fas fa-heart"></i>
+                  {% elif pred.disease_model.name == 'kidney' %}<i class="fas fa-kidneys"></i>
+                  {% elif pred.disease_model.name == 'parkinson' %}<i class="fas fa-brain"></i>
+                  {% elif pred.disease_model.name == 'breast_cancer' %}<i class="fas fa-ribbon"></i>
+                  {% elif pred.disease_model.name == 'liver' %}<i class="fas fa-procedures"></i>
+                  {% endif %}
+                  {{ pred.disease_model.get_name_display }}
+                </span>
+              </td>
+              <td>
+                {% if pred.prediction_label|lower in 'positive,heart disease,kidney disease,parkinson disease,malignant,liver disease' %}
+                <span class="result-badge rb-positive"><i class="fas fa-exclamation-circle"></i> {{ pred.prediction_label }}</span>
+                {% else %}
+                <span class="result-badge rb-negative"><i class="fas fa-check-circle"></i> {{ pred.prediction_label }}</span>
+                {% endif %}
+              </td>
+              <td>
+                <div class="conf-bar-wrap">
+                  <div class="conf-bar"><div class="conf-fill" style="width:{{ pred.confidence|floatformat:0 }}%"></div></div>
+                  <span class="conf-text">{{ pred.confidence|floatformat:1 }}%</span>
+                </div>
+              </td>
+              <td style="color:var(--t3);">{{ pred.created_at|date:"M d, Y" }}<br><small>{{ pred.created_at|date:"H:i" }}</small></td>
+              <td>
+                <a href="{% url 'prediction_app:prediction_result' pred.id %}" class="action-btn ab-view">
+                  <i class="fas fa-eye"></i> View
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      {% if is_paginated %}
+      <div class="pagination">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}" class="page-btn"><i class="fas fa-chevron-left"></i></a>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+        <a href="?page={{ num }}" class="page-btn {% if page_obj.number == num %}active{% endif %}">{{ num }}</a>
+        {% endfor %}
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}" class="page-btn"><i class="fas fa-chevron-right"></i></a>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      {% else %}
+      <div class="empty-state">
+        <div class="empty-icon"><i class="fas fa-clipboard-list"></i></div>
+        <h3>No predictions yet</h3>
+        <p>You haven't made any predictions. Start by selecting a disease below.</p>
+        <a href="{% url 'prediction_app:diabetes' %}" class="btn-start"><i class="fas fa-heartbeat"></i> Make Your First Prediction</a>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}

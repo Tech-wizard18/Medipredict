@@ -1,0 +1,370 @@
+{% extends 'prediction_app/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - MEDIPREDICT{% endblock %}
+
+{% block extra_css %}
+<style>
+  :root {
+    --primary: #667eea;
+    --primary-dark: #5a67d8;
+    --success: #48bb78;
+    --warning: #ed8936;
+    --danger: #fc8181;
+    --info: #63b3ed;
+    --card-radius: 1rem;
+    --shadow: 0 4px 24px rgba(102,126,234,0.10);
+  }
+
+  .dashboard { padding: 2rem 0 3rem; background: #f7f8fc; min-height: 100vh; }
+
+  /* Welcome Banner */
+  .welcome-banner {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: var(--card-radius);
+    padding: 2rem 2.5rem;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 32px rgba(102,126,234,0.3);
+  }
+  .welcome-banner h2 { font-size: 1.75rem; font-weight: 700; margin: 0 0 0.25rem; }
+  .welcome-banner p { opacity: 0.85; margin: 0; font-size: 1rem; }
+  .welcome-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+  .btn-white {
+    background: white; color: var(--primary); border: none;
+    padding: 0.6rem 1.4rem; border-radius: 0.5rem; font-weight: 600;
+    text-decoration: none; font-size: 0.9rem; transition: all 0.2s;
+  }
+  .btn-white:hover { background: #eef2ff; color: var(--primary-dark); }
+  .btn-outline-white {
+    background: transparent; color: white;
+    border: 2px solid rgba(255,255,255,0.6);
+    padding: 0.6rem 1.4rem; border-radius: 0.5rem; font-weight: 600;
+    text-decoration: none; font-size: 0.9rem; transition: all 0.2s;
+  }
+  .btn-outline-white:hover { background: rgba(255,255,255,0.15); color: white; }
+
+  /* Stats Grid */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+  }
+  @media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 600px) { .stats-grid { grid-template-columns: 1fr; } }
+
+  .stat-card {
+    background: white;
+    border-radius: var(--card-radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 32px rgba(102,126,234,0.15); }
+  .stat-icon {
+    width: 56px; height: 56px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; flex-shrink: 0;
+  }
+  .stat-icon.blue   { background: #ebf4ff; color: #3182ce; }
+  .stat-icon.green  { background: #f0fff4; color: #38a169; }
+  .stat-icon.purple { background: #faf5ff; color: #805ad5; }
+  .stat-icon.orange { background: #fffaf0; color: #dd6b20; }
+  .stat-value { font-size: 1.75rem; font-weight: 700; color: #1a202c; line-height: 1; }
+  .stat-label { font-size: 0.85rem; color: #718096; margin-top: 0.25rem; }
+
+  /* Main Grid */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
+
+  /* Cards */
+  .card {
+    background: white;
+    border-radius: var(--card-radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .card-header h3 { font-size: 1rem; font-weight: 600; color: #2d3748; margin: 0; }
+  .card-header a { font-size: 0.85rem; color: var(--primary); text-decoration: none; }
+  .card-body { padding: 1.5rem; }
+
+  /* Disease Grid */
+  .disease-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+  @media (max-width: 700px) { .disease-grid { grid-template-columns: repeat(2, 1fr); } }
+
+  .disease-card {
+    border-radius: 0.75rem;
+    padding: 1.25rem 1rem;
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+    display: block;
+  }
+  .disease-card:hover { transform: translateY(-3px); border-color: var(--primary); }
+  .disease-card .d-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+  .disease-card .d-name { font-size: 0.85rem; font-weight: 600; color: #2d3748; }
+
+  .dc-diabetes   { background: #ebf8ff; } .dc-diabetes .d-icon   { color: #3182ce; }
+  .dc-heart      { background: #fff5f5; } .dc-heart .d-icon      { color: #e53e3e; }
+  .dc-kidney     { background: #f0fff4; } .dc-kidney .d-icon     { color: #38a169; }
+  .dc-parkinson  { background: #faf5ff; } .dc-parkinson .d-icon  { color: #805ad5; }
+  .dc-cancer     { background: #fff0f6; } .dc-cancer .d-icon     { color: #d53f8c; }
+  .dc-liver      { background: #fffaf0; } .dc-liver .d-icon      { color: #dd6b20; }
+
+  /* Prediction List */
+  .prediction-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.875rem 0;
+    border-bottom: 1px solid #f7f7f7;
+  }
+  .prediction-item:last-child { border-bottom: none; }
+  .pred-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; flex-shrink: 0;
+    background: #ebf4ff; color: #3182ce;
+  }
+  .pred-disease { font-size: 0.9rem; font-weight: 600; color: #2d3748; }
+  .pred-date { font-size: 0.78rem; color: #a0aec0; }
+  .pred-badge {
+    margin-left: auto; padding: 0.25rem 0.75rem;
+    border-radius: 999px; font-size: 0.78rem; font-weight: 600;
+  }
+  .badge-positive { background: #fff5f5; color: #e53e3e; }
+  .badge-negative { background: #f0fff4; color: #38a169; }
+  .badge-neutral  { background: #ebf4ff; color: #3182ce; }
+
+  /* Risk Card */
+  .risk-card { text-align: center; padding: 1.5rem; }
+  .risk-circle {
+    width: 120px; height: 120px; border-radius: 50%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 1.75rem; font-weight: 700;
+    border: 6px solid;
+  }
+  .risk-low    { border-color: #48bb78; color: #38a169; background: #f0fff4; }
+  .risk-moderate { border-color: #ed8936; color: #dd6b20; background: #fffaf0; }
+  .risk-high   { border-color: #fc8181; color: #e53e3e; background: #fff5f5; }
+  .risk-critical { border-color: #9b2c2c; color: #9b2c2c; background: #fff5f5; }
+  .risk-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  /* Empty state */
+  .empty-state { text-align: center; padding: 2rem; color: #a0aec0; }
+  .empty-state i { font-size: 2.5rem; margin-bottom: 0.75rem; display: block; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+  <div class="container">
+
+    <!-- Welcome Banner -->
+    <div class="welcome-banner">
+      <div>
+        <h2>Welcome back, {{ user.first_name|default:user.username }} 👋</h2>
+        <p>Here's your health overview. Stay on top of your predictions.</p>
+      </div>
+      <div class="welcome-actions">
+        <a href="{% url 'prediction_app:diabetes' %}" class="btn-white">
+          <i class="fas fa-plus"></i> New Prediction
+        </a>
+        <a href="{% url 'prediction_app:reports' %}" class="btn-outline-white">
+          <i class="fas fa-file-medical"></i> Reports
+        </a>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon blue"><i class="fas fa-chart-bar"></i></div>
+        <div>
+          <div class="stat-value">{{ total_predictions|default:0 }}</div>
+          <div class="stat-label">Total Predictions</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green"><i class="fas fa-calendar-day"></i></div>
+        <div>
+          <div class="stat-value">{{ today_predictions|default:0 }}</div>
+          <div class="stat-label">Today</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon purple"><i class="fas fa-calendar-week"></i></div>
+        <div>
+          <div class="stat-value">{{ week_predictions|default:0 }}</div>
+          <div class="stat-label">This Week</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon orange"><i class="fas fa-percentage"></i></div>
+        <div>
+          <div class="stat-value">{{ prediction_accuracy|floatformat:0|default:0 }}%</div>
+          <div class="stat-label">Avg Confidence</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="main-grid">
+
+      <!-- Left: Diseases + Recent Predictions -->
+      <div style="display:flex;flex-direction:column;gap:1.5rem;">
+
+        <!-- Disease Predictions -->
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fas fa-heartbeat" style="color:var(--primary);margin-right:0.5rem;"></i> Predict a Disease</h3>
+          </div>
+          <div class="card-body">
+            <div class="disease-grid">
+              <a href="{% url 'prediction_app:diabetes' %}" class="disease-card dc-diabetes">
+                <div class="d-icon"><i class="fas fa-tint"></i></div>
+                <div class="d-name">Diabetes</div>
+              </a>
+              <a href="{% url 'prediction_app:heart' %}" class="disease-card dc-heart">
+                <div class="d-icon"><i class="fas fa-heart"></i></div>
+                <div class="d-name">Heart Disease</div>
+              </a>
+              <a href="{% url 'prediction_app:kidney' %}" class="disease-card dc-kidney">
+                <div class="d-icon"><i class="fas fa-kidneys"></i></div>
+                <div class="d-name">Kidney Disease</div>
+              </a>
+              <a href="{% url 'prediction_app:parkinson' %}" class="disease-card dc-parkinson">
+                <div class="d-icon"><i class="fas fa-brain"></i></div>
+                <div class="d-name">Parkinson's</div>
+              </a>
+              <a href="{% url 'prediction_app:breast_cancer' %}" class="disease-card dc-cancer">
+                <div class="d-icon"><i class="fas fa-ribbon"></i></div>
+                <div class="d-name">Breast Cancer</div>
+              </a>
+              <a href="{% url 'prediction_app:liver' %}" class="disease-card dc-liver">
+                <div class="d-icon"><i class="fas fa-procedures"></i></div>
+                <div class="d-name">Liver Disease</div>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Predictions -->
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fas fa-history" style="color:var(--primary);margin-right:0.5rem;"></i> Recent Predictions</h3>
+            <a href="{% url 'prediction_app:history' %}">View all</a>
+          </div>
+          <div class="card-body" style="padding-top:0.5rem;padding-bottom:0.5rem;">
+            {% if recent_predictions %}
+              {% for pred in recent_predictions %}
+              <div class="prediction-item">
+                <div class="pred-icon"><i class="fas fa-stethoscope"></i></div>
+                <div>
+                  <div class="pred-disease">{{ pred.disease_model.get_name_display }}</div>
+                  <div class="pred-date">{{ pred.created_at|date:"M d, Y · H:i" }}</div>
+                </div>
+                <span class="pred-badge {% if pred.prediction_label|lower in 'positive,heart disease,kidney disease,parkinson disease,malignant,liver disease' %}badge-positive{% else %}badge-negative{% endif %}">
+                  {{ pred.prediction_label }}
+                </span>
+              </div>
+              {% endfor %}
+            {% else %}
+              <div class="empty-state">
+                <i class="fas fa-clipboard-list"></i>
+                <p>No predictions yet. Make your first one above.</p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right: Risk + Quick Info -->
+      <div style="display:flex;flex-direction:column;gap:1.5rem;">
+
+        <!-- Risk Assessment -->
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fas fa-shield-alt" style="color:var(--primary);margin-right:0.5rem;"></i> Health Risk</h3>
+          </div>
+          <div class="risk-card">
+            {% if overall_risk %}
+            <div class="risk-circle risk-{{ overall_risk.level }}">
+              <span>{{ overall_risk.score|floatformat:0|default:0 }}%</span>
+              <span class="risk-label">{{ overall_risk.level|upper }}</span>
+            </div>
+            <p style="color:#4a5568;font-size:0.9rem;">{{ overall_risk.message }}</p>
+            {% else %}
+            <div class="empty-state">
+              <i class="fas fa-shield-alt"></i>
+              <p>Make predictions to see your risk assessment.</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fas fa-info-circle" style="color:var(--primary);margin-right:0.5rem;"></i> Quick Info</h3>
+          </div>
+          <div class="card-body">
+            <div style="display:flex;flex-direction:column;gap:0.875rem;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="color:#718096;font-size:0.9rem;">This Month</span>
+                <strong style="color:#2d3748;">{{ month_predictions|default:0 }} predictions</strong>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="color:#718096;font-size:0.9rem;">Diseases Checked</span>
+                <strong style="color:#2d3748;">{{ unique_diseases|default:0 }}</strong>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="color:#718096;font-size:0.9rem;">Health Reports</span>
+                <strong style="color:#2d3748;">{{ recent_reports|length|default:0 }}</strong>
+              </div>
+              <hr style="margin:0.25rem 0;border-color:#f0f0f0;">
+              <a href="{% url 'prediction_app:history' %}" style="display:flex;align-items:center;gap:0.5rem;color:var(--primary);text-decoration:none;font-size:0.9rem;font-weight:600;">
+                <i class="fas fa-arrow-right"></i> Full Prediction History
+              </a>
+              <a href="{% url 'prediction_app:reports' %}" style="display:flex;align-items:center;gap:0.5rem;color:var(--primary);text-decoration:none;font-size:0.9rem;font-weight:600;">
+                <i class="fas fa-arrow-right"></i> Health Reports
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

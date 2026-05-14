@@ -1,0 +1,159 @@
+{% extends 'prediction_app/base.html' %}
+{% load static %}
+{% block title %}Diabetes Prediction - MEDIPREDICT{% endblock %}
+{% block extra_css %}<style>
+.pred-page{padding:0 0 4rem;background:#f8fafc;min-height:100vh;}
+.pred-hero{background:linear-gradient(135deg,#2563eb 0%,#3b82f6 60%,#06b6d4 100%);padding:2.5rem 1.5rem;text-align:center;margin-bottom:2rem;}
+.pred-hero h1{font-size:2rem;font-weight:800;color:white;margin-bottom:.4rem;}
+.pred-hero p{color:rgba(255,255,255,.8);font-size:1rem;}
+.pred-hero-icon{width:64px;height:64px;background:rgba(255,255,255,.2);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:1.75rem;color:white;margin:0 auto 1rem;}
+.pred-layout{display:grid;grid-template-columns:1fr 340px;gap:1.5rem;max-width:1100px;margin:0 auto;padding:0 1.5rem;}
+@media(max-width:900px){.pred-layout{grid-template-columns:1fr;}}
+.pred-card{background:white;border-radius:1rem;box-shadow:0 4px 20px rgba(0,0,0,.07);overflow:hidden;}
+.pred-card-header{padding:1.25rem 1.5rem;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:.75rem;}
+.pred-card-header h2{font-size:1.05rem;font-weight:700;color:#111827;}
+.pred-card-icon{width:36px;height:36px;background:#dbeafe;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#2563eb;font-size:.9rem;}
+.pred-card-body{padding:1.5rem;}
+.field-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.1rem;}
+.fg{display:flex;flex-direction:column;gap:.35rem;}
+.fg label{font-size:.78rem;font-weight:600;color:#374151;}
+.fg input,.fg select{padding:.65rem .875rem;border:1.5px solid #e5e7eb;border-radius:.5rem;font-size:.875rem;font-family:inherit;color:#111827;background:#fafafa;outline:none;transition:all .15s;}
+.fg input:focus,.fg select:focus{border-color:#2563eb;background:white;box-shadow:0 0 0 3px rgba(37,99,235,.1);}
+.fg .hint{font-size:.72rem;color:#9ca3af;}
+.fg .err{font-size:.72rem;color:#ef4444;}
+.section-sep{font-size:.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;padding:.75rem 0 .25rem;border-bottom:1px solid #f3f4f6;margin-bottom:.25rem;grid-column:1/-1;}
+.btn-predict{width:100%;padding:.875rem;background:linear-gradient(135deg,#2563eb,#3b82f6);color:white;border:none;border-radius:.625rem;font-size:1rem;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:.5rem;margin-top:1.25rem;transition:all .2s;}
+.btn-predict:hover{opacity:.92;transform:translateY(-1px);box-shadow:0 6px 20px rgba(37,99,235,.35);}
+.btn-reset-form{width:100%;padding:.7rem;background:#f3f4f6;color:#374151;border:1.5px solid #e5e7eb;border-radius:.625rem;font-size:.875rem;font-weight:600;cursor:pointer;font-family:inherit;margin-top:.5rem;transition:all .15s;}
+.btn-reset-form:hover{background:#e5e7eb;}
+/* Info sidebar */
+.info-card{background:white;border-radius:1rem;box-shadow:0 4px 20px rgba(0,0,0,.07);padding:1.5rem;margin-bottom:1rem;}
+.info-card h3{font-size:.9rem;font-weight:700;color:#111827;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;}
+.info-card h3 i{color:#2563eb;}
+.info-list{list-style:none;display:flex;flex-direction:column;gap:.5rem;}
+.info-list li{font-size:.82rem;color:#4b5563;display:flex;align-items:flex-start;gap:.5rem;line-height:1.5;}
+.info-list li::before{content:"•";color:#2563eb;font-weight:700;flex-shrink:0;}
+.range-row{display:flex;align-items:center;justify-content:space-between;font-size:.78rem;color:#6b7280;margin-top:.25rem;}
+.accuracy-badge{display:inline-flex;align-items:center;gap:.4rem;background:#dbeafe;color:#1d4ed8;padding:.4rem .875rem;border-radius:999px;font-size:.8rem;font-weight:700;margin-bottom:1rem;}
+</style>{% endblock %}
+
+{% block content %}
+<div class="pred-page">
+  <div class="pred-hero">
+    <div class="pred-hero-icon"><i class="fas fa-tint"></i></div>
+    <h1>Diabetes Prediction</h1>
+    <p>Enter your health parameters to assess your diabetes risk using AI</p>
+  </div>
+
+  <div class="pred-layout">
+    <!-- Form -->
+    <div>
+      {% if messages %}{% for m in messages %}
+      <div style="padding:.75rem 1rem;border-radius:.5rem;margin-bottom:1rem;background:{% if 'error' in m.tags %}#fef2f2;color:#991b1b;border:1px solid #fecaca{% else %}#f0fdf4;color:#166534;border:1px solid #bbf7d0{% endif %};">
+        <i class="fas fa-info-circle"></i> {{ m }}
+      </div>{% endfor %}{% endif %}
+
+      <div class="pred-card">
+        <div class="pred-card-header">
+          <div class="pred-card-icon"><i class="fas fa-tint"></i></div>
+          <h2>Health Parameters</h2>
+        </div>
+        <div class="pred-card-body">
+          <form method="POST" id="predForm">
+            {% csrf_token %}
+            <div class="field-grid">
+              <div class="section-sep">Patient Information</div>
+              <div class="fg">
+                <label>Number of Pregnancies</label>
+                {{ form.pregnancies }}
+                <span class="hint">Enter 0 if not applicable</span>
+                {% if form.pregnancies.errors %}<span class="err">{{ form.pregnancies.errors|join:", " }}</span>{% endif %}
+              </div>
+              <div class="fg">
+                <label>Age (Years)</label>
+                {{ form.age }}
+                {% if form.age.errors %}<span class="err">{{ form.age.errors|join:", " }}</span>{% endif %}
+              </div>
+              <div class="fg">
+                <label>BMI (kg/m²)</label>
+                {{ form.bmi }}
+                <span class="hint">Normal: 18.5 – 24.9</span>
+                {% if form.bmi.errors %}<span class="err">{{ form.bmi.errors|join:", " }}</span>{% endif %}
+              </div>
+
+              <div class="section-sep">Blood Measurements</div>
+              <div class="fg">
+                <label>Glucose Level (mg/dL)</label>
+                {{ form.glucose }}
+                <span class="hint">Normal: 70 – 100 mg/dL</span>
+                {% if form.glucose.errors %}<span class="err">{{ form.glucose.errors|join:", " }}</span>{% endif %}
+              </div>
+              <div class="fg">
+                <label>Blood Pressure (mm Hg)</label>
+                {{ form.blood_pressure }}
+                <span class="hint">Normal: 60 – 80 mm Hg</span>
+                {% if form.blood_pressure.errors %}<span class="err">{{ form.blood_pressure.errors|join:", " }}</span>{% endif %}
+              </div>
+              <div class="fg">
+                <label>Insulin Level (mu U/ml)</label>
+                {{ form.insulin }}
+                <span class="hint">2-Hour serum insulin</span>
+                {% if form.insulin.errors %}<span class="err">{{ form.insulin.errors|join:", " }}</span>{% endif %}
+              </div>
+
+              <div class="section-sep">Other Parameters</div>
+              <div class="fg">
+                <label>Skin Thickness (mm)</label>
+                {{ form.skin_thickness }}
+                <span class="hint">Triceps skin fold thickness</span>
+                {% if form.skin_thickness.errors %}<span class="err">{{ form.skin_thickness.errors|join:", " }}</span>{% endif %}
+              </div>
+              <div class="fg">
+                <label>Diabetes Pedigree Function</label>
+                {{ form.diabetes_pedigree_function }}
+                <span class="hint">Family history score (0 – 2.5)</span>
+                {% if form.diabetes_pedigree_function.errors %}<span class="err">{{ form.diabetes_pedigree_function.errors|join:", " }}</span>{% endif %}
+              </div>
+            </div>
+            <button type="submit" class="btn-predict"><i class="fas fa-brain"></i> Predict Diabetes Risk</button>
+            <button type="reset" class="btn-reset-form"><i class="fas fa-redo"></i> Reset Form</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div>
+      <div class="info-card">
+        <div class="accuracy-badge"><i class="fas fa-check-circle"></i> 85% Model Accuracy</div>
+        <h3><i class="fas fa-info-circle"></i> About Diabetes</h3>
+        <ul class="info-list">
+          <li>Type 2 diabetes affects how your body processes blood sugar</li>
+          <li>Early detection can prevent serious complications</li>
+          <li>Risk increases with age, obesity, and family history</li>
+          <li>Lifestyle changes can significantly reduce risk</li>
+        </ul>
+      </div>
+      <div class="info-card">
+        <h3><i class="fas fa-exclamation-triangle"></i> Key Risk Factors</h3>
+        <ul class="info-list">
+          <li>High fasting glucose (≥ 126 mg/dL)</li>
+          <li>BMI over 25 (overweight)</li>
+          <li>Family history of diabetes</li>
+          <li>Physical inactivity</li>
+          <li>High blood pressure</li>
+        </ul>
+      </div>
+      <div class="info-card">
+        <h3><i class="fas fa-ruler"></i> Normal Ranges</h3>
+        <ul class="info-list">
+          <li>Glucose: 70 – 100 mg/dL</li>
+          <li>Blood Pressure: 60 – 80 mm Hg</li>
+          <li>BMI: 18.5 – 24.9</li>
+          <li>Insulin: 2 – 25 mu U/ml</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

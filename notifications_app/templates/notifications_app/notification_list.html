@@ -1,0 +1,104 @@
+{% extends 'prediction_app/base.html' %}
+{% block title %}Notifications - MEDIPREDICT{% endblock %}
+{% block extra_css %}<style>
+.notif-page{padding:0 0 4rem;background:#f8fafc;min-height:100vh;}
+.page-hero{background:linear-gradient(135deg,#0369a1 0%,#0284c7 60%,#38bdf8 100%);padding:2.5rem 1.5rem;text-align:center;margin-bottom:2rem;}
+.page-hero h1{font-size:2rem;font-weight:800;color:white;margin-bottom:.4rem;}
+.page-hero p{color:rgba(255,255,255,.8);}
+.container{max-width:900px;margin:0 auto;padding:0 1.5rem;}
+.notif-layout{display:grid;grid-template-columns:220px 1fr;gap:1.5rem;}
+@media(max-width:700px){.notif-layout{grid-template-columns:1fr;}}
+.filter-card{background:white;border-radius:1rem;box-shadow:0 4px 16px rgba(0,0,0,.07);padding:1.25rem;height:fit-content;}
+.filter-card h3{font-size:.85rem;font-weight:700;color:#374151;margin-bottom:1rem;text-transform:uppercase;letter-spacing:.05em;}
+.filter-label{font-size:.78rem;font-weight:600;color:#374151;display:block;margin-bottom:.35rem;}
+.filter-select{width:100%;padding:.6rem .75rem;border:1.5px solid #e5e7eb;border-radius:.5rem;font-size:.85rem;font-family:inherit;color:#111827;background:#fafafa;outline:none;margin-bottom:.875rem;}
+.filter-select:focus{border-color:#0284c7;}
+.btn-filter{width:100%;padding:.65rem;background:linear-gradient(135deg,#0369a1,#0284c7);color:white;border:none;border-radius:.5rem;font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit;}
+.notif-list{display:flex;flex-direction:column;gap:.75rem;}
+.notif-card{background:white;border-radius:1rem;box-shadow:0 4px 16px rgba(0,0,0,.07);padding:1.25rem 1.5rem;display:flex;align-items:flex-start;gap:1rem;transition:all .15s;border-left:4px solid transparent;}
+.notif-card.unread{border-left-color:#0284c7;background:#f0f9ff;}
+.notif-card:hover{box-shadow:0 8px 24px rgba(0,0,0,.1);}
+.notif-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
+.ni-prediction{background:#dbeafe;color:#2563eb;}
+.ni-report{background:#dcfce7;color:#16a34a;}
+.ni-system{background:#f3f4f6;color:#6b7280;}
+.ni-alert{background:#fee2e2;color:#dc2626;}
+.notif-body{flex:1;}
+.notif-title{font-size:.9rem;font-weight:600;color:#111827;margin-bottom:.2rem;}
+.notif-msg{font-size:.82rem;color:#6b7280;line-height:1.5;}
+.notif-meta{display:flex;align-items:center;gap:.75rem;margin-top:.5rem;}
+.notif-time{font-size:.75rem;color:#9ca3af;}
+.unread-dot{width:8px;height:8px;background:#0284c7;border-radius:50%;flex-shrink:0;}
+.mark-read-btn{font-size:.75rem;color:#0284c7;background:none;border:none;cursor:pointer;font-family:inherit;font-weight:600;padding:0;}
+.top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;}
+.top-bar h2{font-size:1rem;font-weight:700;color:#111827;}
+.mark-all-btn{font-size:.8rem;color:#0284c7;background:none;border:none;cursor:pointer;font-family:inherit;font-weight:600;}
+.empty-state{text-align:center;padding:3rem;background:white;border-radius:1rem;box-shadow:0 4px 16px rgba(0,0,0,.07);}
+.empty-icon{width:64px;height:64px;background:#e0f2fe;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:#0284c7;margin:0 auto 1rem;}
+.empty-state h3{font-size:1rem;font-weight:700;color:#111827;margin-bottom:.4rem;}
+.empty-state p{color:#6b7280;font-size:.85rem;}
+</style>{% endblock %}
+
+{% block content %}
+<div class="notif-page">
+  <div class="page-hero">
+    <h1><i class="fas fa-bell"></i> Notifications</h1>
+    <p>Stay updated with your health predictions and system alerts</p>
+  </div>
+  <div class="container">
+    <div class="notif-layout">
+      <!-- Filters -->
+      <div class="filter-card">
+        <h3>Filters</h3>
+        <form method="GET">
+          <label class="filter-label">Type</label>
+          <select name="type" class="filter-select">
+            <option value="">All Types</option>
+            {% for tv, tl in notification_types %}<option value="{{ tv }}" {% if request.GET.type == tv %}selected{% endif %}>{{ tl }}</option>{% endfor %}
+          </select>
+          <label class="filter-label">Status</label>
+          <select name="is_read" class="filter-select">
+            <option value="">All</option>
+            <option value="false" {% if request.GET.is_read == 'false' %}selected{% endif %}>Unread</option>
+            <option value="true" {% if request.GET.is_read == 'true' %}selected{% endif %}>Read</option>
+          </select>
+          <button type="submit" class="btn-filter">Apply Filters</button>
+        </form>
+      </div>
+
+      <!-- List -->
+      <div>
+        <div class="top-bar">
+          <h2>{{ notifications|length }} notification{{ notifications|length|pluralize }}</h2>
+          <button class="mark-all-btn"><i class="fas fa-check-double"></i> Mark all as read</button>
+        </div>
+        {% if notifications %}
+        <div class="notif-list">
+          {% for notif in notifications %}
+          <div class="notif-card {% if not notif.is_read %}unread{% endif %}">
+            <div class="notif-icon ni-{% if 'prediction' in notif.notification_type %}prediction{% elif 'report' in notif.notification_type %}report{% elif 'alert' in notif.notification_type %}alert{% else %}system{% endif %}">
+              <i class="fas {% if 'prediction' in notif.notification_type %}fa-heartbeat{% elif 'report' in notif.notification_type %}fa-file-medical{% elif 'alert' in notif.notification_type %}fa-exclamation-triangle{% else %}fa-bell{% endif %}"></i>
+            </div>
+            <div class="notif-body">
+              <div class="notif-title">{{ notif.title }}</div>
+              <div class="notif-msg">{{ notif.message }}</div>
+              <div class="notif-meta">
+                {% if not notif.is_read %}<span class="unread-dot"></span>{% endif %}
+                <span class="notif-time"><i class="fas fa-clock" style="margin-right:.25rem;"></i>{{ notif.created_at|timesince }} ago</span>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+          <div class="empty-icon"><i class="fas fa-bell-slash"></i></div>
+          <h3>No notifications</h3>
+          <p>You're all caught up! Notifications will appear here.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

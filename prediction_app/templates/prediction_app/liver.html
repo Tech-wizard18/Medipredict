@@ -1,0 +1,117 @@
+{% extends 'prediction_app/base.html' %}
+{% load static %}
+{% block title %}Liver Disease Prediction - MEDIPREDICT{% endblock %}
+{% block extra_css %}<style>
+.pred-page{padding:0 0 4rem;background:#f8fafc;min-height:100vh;}
+.pred-hero{background:linear-gradient(135deg,#d97706 0%,#f59e0b 60%,#fbbf24 100%);padding:2.5rem 1.5rem;text-align:center;margin-bottom:2rem;}
+.pred-hero h1{font-size:2rem;font-weight:800;color:white;margin-bottom:.4rem;}
+.pred-hero p{color:rgba(255,255,255,.85);font-size:1rem;}
+.pred-hero-icon{width:64px;height:64px;background:rgba(255,255,255,.2);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:1.75rem;color:white;margin:0 auto 1rem;}
+.pred-layout{display:grid;grid-template-columns:1fr 320px;gap:1.5rem;max-width:1100px;margin:0 auto;padding:0 1.5rem;}
+@media(max-width:900px){.pred-layout{grid-template-columns:1fr;}}
+.pred-card{background:white;border-radius:1rem;box-shadow:0 4px 20px rgba(0,0,0,.07);overflow:hidden;}
+.pred-card-header{padding:1.25rem 1.5rem;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:.75rem;}
+.pred-card-header h2{font-size:1.05rem;font-weight:700;color:#111827;}
+.pred-card-icon{width:36px;height:36px;background:#fef3c7;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#d97706;font-size:.9rem;}
+.pred-card-body{padding:1.5rem;}
+.field-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.1rem;}
+.fg{display:flex;flex-direction:column;gap:.35rem;}
+.fg label{font-size:.78rem;font-weight:600;color:#374151;}
+.fg input,.fg select{padding:.65rem .875rem;border:1.5px solid #e5e7eb;border-radius:.5rem;font-size:.875rem;font-family:inherit;color:#111827;background:#fafafa;outline:none;transition:all .15s;width:100%;}
+.fg input:focus,.fg select:focus{border-color:#d97706;background:white;box-shadow:0 0 0 3px rgba(217,119,6,.1);}
+.fg .hint{font-size:.72rem;color:#9ca3af;}
+.fg .err{font-size:.72rem;color:#ef4444;}
+.section-sep{font-size:.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;padding:.75rem 0 .25rem;border-bottom:1px solid #f3f4f6;margin-bottom:.25rem;grid-column:1/-1;}
+.btn-predict{width:100%;padding:.875rem;background:linear-gradient(135deg,#d97706,#f59e0b);color:white;border:none;border-radius:.625rem;font-size:1rem;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:.5rem;margin-top:1.25rem;transition:all .2s;}
+.btn-predict:hover{opacity:.92;transform:translateY(-1px);box-shadow:0 6px 20px rgba(217,119,6,.35);}
+.btn-reset-form{width:100%;padding:.7rem;background:#f3f4f6;color:#374151;border:1.5px solid #e5e7eb;border-radius:.625rem;font-size:.875rem;font-weight:600;cursor:pointer;font-family:inherit;margin-top:.5rem;transition:all .15s;}
+.btn-reset-form:hover{background:#e5e7eb;}
+.info-card{background:white;border-radius:1rem;box-shadow:0 4px 20px rgba(0,0,0,.07);padding:1.5rem;margin-bottom:1rem;}
+.info-card h3{font-size:.9rem;font-weight:700;color:#111827;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;}
+.info-card h3 i{color:#d97706;}
+.info-list{list-style:none;display:flex;flex-direction:column;gap:.5rem;}
+.info-list li{font-size:.82rem;color:#4b5563;display:flex;align-items:flex-start;gap:.5rem;line-height:1.5;}
+.info-list li::before{content:"•";color:#d97706;font-weight:700;flex-shrink:0;}
+.accuracy-badge{display:inline-flex;align-items:center;gap:.4rem;background:#fef3c7;color:#b45309;padding:.4rem .875rem;border-radius:999px;font-size:.8rem;font-weight:700;margin-bottom:1rem;}
+</style>{% endblock %}
+
+{% block content %}
+<div class="pred-page">
+  <div class="pred-hero">
+    <div class="pred-hero-icon"><i class="fas fa-procedures"></i></div>
+    <h1>Liver Disease Prediction</h1>
+    <p>Predict liver disease from blood test and enzyme level analysis</p>
+  </div>
+  <div class="pred-layout">
+    <div>
+      {% if messages %}{% for m in messages %}
+      <div style="padding:.75rem 1rem;border-radius:.5rem;margin-bottom:1rem;background:{% if 'error' in m.tags %}#fef2f2;color:#991b1b;border:1px solid #fecaca{% else %}#f0fdf4;color:#166534;border:1px solid #bbf7d0{% endif %};">
+        <i class="fas fa-info-circle"></i> {{ m }}</div>{% endfor %}{% endif %}
+      <div class="pred-card">
+        <div class="pred-card-header">
+          <div class="pred-card-icon"><i class="fas fa-vial"></i></div>
+          <h2>Liver Function Test Values</h2>
+        </div>
+        <div class="pred-card-body">
+          <form method="POST">
+            {% csrf_token %}
+            <div class="field-grid">
+              <div class="section-sep">Patient Information</div>
+              <div class="fg"><label>Age</label>{{ form.age }}{% if form.age.errors %}<span class="err">{{ form.age.errors|join:", " }}</span>{% endif %}</div>
+              <div class="fg"><label>Gender</label>{{ form.gender }}{% if form.gender.errors %}<span class="err">{{ form.gender.errors|join:", " }}</span>{% endif %}</div>
+
+              <div class="section-sep">Bilirubin Levels</div>
+              <div class="fg"><label>Total Bilirubin (mg/dL)</label>{{ form.total_bilirubin }}<span class="hint">Normal: 0.1 – 1.2 mg/dL</span>{% if form.total_bilirubin.errors %}<span class="err">{{ form.total_bilirubin.errors|join:", " }}</span>{% endif %}</div>
+              <div class="fg"><label>Direct Bilirubin (mg/dL)</label>{{ form.direct_bilirubin }}<span class="hint">Normal: 0 – 0.3 mg/dL</span>{% if form.direct_bilirubin.errors %}<span class="err">{{ form.direct_bilirubin.errors|join:", " }}</span>{% endif %}</div>
+
+              <div class="section-sep">Enzyme Levels</div>
+              <div class="fg"><label>Alkaline Phosphotase (IU/L)</label>{{ form.alkaline_phosphotase }}<span class="hint">Normal: 44 – 147 IU/L</span>{% if form.alkaline_phosphotase.errors %}<span class="err">{{ form.alkaline_phosphotase.errors|join:", " }}</span>{% endif %}</div>
+              <div class="fg"><label>Alamine Aminotransferase (IU/L)</label>{{ form.alamine_aminotransferase }}<span class="hint">Normal: 7 – 56 IU/L</span>{% if form.alamine_aminotransferase.errors %}<span class="err">{{ form.alamine_aminotransferase.errors|join:", " }}</span>{% endif %}</div>
+              <div class="fg"><label>Aspartate Aminotransferase (IU/L)</label>{{ form.aspartate_aminotransferase }}<span class="hint">Normal: 10 – 40 IU/L</span>{% if form.aspartate_aminotransferase.errors %}<span class="err">{{ form.aspartate_aminotransferase.errors|join:", " }}</span>{% endif %}</div>
+
+              <div class="section-sep">Protein Levels</div>
+              <div class="fg"><label>Total Proteins (g/dL)</label>{{ form.total_proteins }}<span class="hint">Normal: 6.3 – 8.2 g/dL</span>{% if form.total_proteins.errors %}<span class="err">{{ form.total_proteins.errors|join:", " }}</span>{% endif %}</div>
+              <div class="fg"><label>Albumin (g/dL)</label>{{ form.albumin }}<span class="hint">Normal: 3.5 – 5.0 g/dL</span>{% if form.albumin.errors %}<span class="err">{{ form.albumin.errors|join:", " }}</span>{% endif %}</div>
+              <div class="fg"><label>Albumin/Globulin Ratio</label>{{ form.albumin_globulin_ratio }}<span class="hint">Normal: 1.0 – 2.5</span>{% if form.albumin_globulin_ratio.errors %}<span class="err">{{ form.albumin_globulin_ratio.errors|join:", " }}</span>{% endif %}</div>
+            </div>
+            <button type="submit" class="btn-predict"><i class="fas fa-procedures"></i> Predict Liver Disease Risk</button>
+            <button type="reset" class="btn-reset-form"><i class="fas fa-redo"></i> Reset Form</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="info-card">
+        <div class="accuracy-badge"><i class="fas fa-check-circle"></i> 81% Model Accuracy</div>
+        <h3><i class="fas fa-info-circle"></i> About Liver Disease</h3>
+        <ul class="info-list">
+          <li>The liver performs over 500 vital functions</li>
+          <li>Liver disease is often silent until advanced stages</li>
+          <li>Blood tests can detect liver damage early</li>
+          <li>Lifestyle changes can reverse early liver damage</li>
+        </ul>
+      </div>
+      <div class="info-card">
+        <h3><i class="fas fa-exclamation-triangle"></i> Warning Signs</h3>
+        <ul class="info-list">
+          <li>Yellowing of skin or eyes (jaundice)</li>
+          <li>Abdominal pain and swelling</li>
+          <li>Chronic fatigue</li>
+          <li>Dark urine or pale stool</li>
+          <li>Nausea and vomiting</li>
+        </ul>
+      </div>
+      <div class="info-card">
+        <h3><i class="fas fa-ruler"></i> Normal Lab Ranges</h3>
+        <ul class="info-list">
+          <li>Total Bilirubin: 0.1 – 1.2 mg/dL</li>
+          <li>ALT: 7 – 56 IU/L</li>
+          <li>AST: 10 – 40 IU/L</li>
+          <li>Albumin: 3.5 – 5.0 g/dL</li>
+          <li>Total Protein: 6.3 – 8.2 g/dL</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,540 @@
+{% extends 'prediction_app/base.html' %}
+{% load static %}
+
+{% block title %}MEDIPREDICT - AI Disease Prediction System{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── HERO ── */
+.hero {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 40%, #06b6d4 100%);
+    padding: 90px 1.5rem 100px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+.hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 20% 50%, rgba(255,255,255,0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255,255,255,0.06) 0%, transparent 40%);
+}
+.hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.25);
+    color: white;
+    padding: 0.4rem 1rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    letter-spacing: 0.02em;
+}
+.hero-badge i { color: #fbbf24; }
+.hero h1 {
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    font-weight: 800;
+    color: white;
+    line-height: 1.15;
+    margin-bottom: 1.25rem;
+    letter-spacing: -0.03em;
+    position: relative;
+}
+.hero h1 .highlight {
+    background: linear-gradient(90deg, #fbbf24, #f472b6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.hero p {
+    font-size: 1.2rem;
+    color: rgba(255,255,255,0.88);
+    max-width: 600px;
+    margin: 0 auto 2.5rem;
+    line-height: 1.7;
+    position: relative;
+}
+.hero-btns {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    position: relative;
+}
+.btn-hero-primary {
+    background: white;
+    color: #6366f1;
+    padding: 0.875rem 2rem;
+    border-radius: 0.75rem;
+    font-weight: 700;
+    font-size: 1rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+.btn-hero-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.2); }
+.btn-hero-outline {
+    background: rgba(255,255,255,0.12);
+    color: white;
+    border: 2px solid rgba(255,255,255,0.4);
+    padding: 0.875rem 2rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    font-size: 1rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+    backdrop-filter: blur(8px);
+}
+.btn-hero-outline:hover { background: rgba(255,255,255,0.22); transform: translateY(-2px); }
+
+/* Floating cards in hero */
+.hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-top: 3.5rem;
+    position: relative;
+}
+.hero-stat {
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 1rem;
+    padding: 1.25rem 2rem;
+    color: white;
+    text-align: center;
+    min-width: 130px;
+}
+.hero-stat-num { font-size: 2rem; font-weight: 800; line-height: 1; }
+.hero-stat-label { font-size: 0.8rem; opacity: 0.8; margin-top: 0.25rem; }
+
+/* Wave divider */
+.wave { display: block; margin-bottom: -2px; }
+
+/* ── DISEASES ── */
+.diseases-section {
+    padding: 80px 1.5rem;
+    background: white;
+}
+.section-header { text-align: center; margin-bottom: 3rem; }
+.section-tag {
+    display: inline-block;
+    background: #ede9fe;
+    color: #7c3aed;
+    padding: 0.3rem 1rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+}
+.section-header h2 {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: 800;
+    color: #111827;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.75rem;
+}
+.section-header p { color: #6b7280; font-size: 1.05rem; max-width: 550px; margin: 0 auto; }
+
+.diseases-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+.disease-card {
+    border-radius: 1.25rem;
+    overflow: hidden;
+    text-decoration: none;
+    display: block;
+    transition: all 0.25s;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    border: 1px solid #f3f4f6;
+}
+.disease-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(0,0,0,0.12); }
+.dc-top {
+    padding: 2rem 1.5rem 1.5rem;
+    text-align: center;
+}
+.dc-icon {
+    width: 64px; height: 64px;
+    border-radius: 18px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.75rem;
+    margin: 0 auto 1rem;
+}
+.dc-name { font-size: 1.1rem; font-weight: 700; color: #111827; margin-bottom: 0.4rem; }
+.dc-desc { font-size: 0.85rem; color: #6b7280; line-height: 1.5; }
+.dc-bottom {
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid #f3f4f6;
+}
+.dc-accuracy { font-size: 0.8rem; font-weight: 600; }
+.dc-btn {
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 0.4rem 1rem;
+    border-radius: 0.5rem;
+    color: white;
+}
+
+/* Disease color themes */
+.dc-diabetes  .dc-top { background: linear-gradient(135deg, #eff6ff, #dbeafe); }
+.dc-diabetes  .dc-icon { background: #2563eb; color: white; }
+.dc-diabetes  .dc-accuracy { color: #2563eb; }
+.dc-diabetes  .dc-btn { background: #2563eb; }
+
+.dc-heart .dc-top { background: linear-gradient(135deg, #fff1f2, #ffe4e6); }
+.dc-heart .dc-icon { background: #e11d48; color: white; }
+.dc-heart .dc-accuracy { color: #e11d48; }
+.dc-heart .dc-btn { background: #e11d48; }
+
+.dc-kidney .dc-top { background: linear-gradient(135deg, #f0fdf4, #dcfce7); }
+.dc-kidney .dc-icon { background: #16a34a; color: white; }
+.dc-kidney .dc-accuracy { color: #16a34a; }
+.dc-kidney .dc-btn { background: #16a34a; }
+
+.dc-parkinson .dc-top { background: linear-gradient(135deg, #faf5ff, #ede9fe); }
+.dc-parkinson .dc-icon { background: #7c3aed; color: white; }
+.dc-parkinson .dc-accuracy { color: #7c3aed; }
+.dc-parkinson .dc-btn { background: #7c3aed; }
+
+.dc-cancer .dc-top { background: linear-gradient(135deg, #fff0f6, #fce7f3); }
+.dc-cancer .dc-icon { background: #db2777; color: white; }
+.dc-cancer .dc-accuracy { color: #db2777; }
+.dc-cancer .dc-btn { background: #db2777; }
+
+.dc-liver .dc-top { background: linear-gradient(135deg, #fffbeb, #fef3c7); }
+.dc-liver .dc-icon { background: #d97706; color: white; }
+.dc-liver .dc-accuracy { color: #d97706; }
+.dc-liver .dc-btn { background: #d97706; }
+
+/* ── FEATURES ── */
+.features-section {
+    padding: 80px 1.5rem;
+    background: linear-gradient(180deg, #f8faff 0%, #f3f4f6 100%);
+}
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+.feature-card {
+    background: white;
+    border-radius: 1.25rem;
+    padding: 2rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    border: 1px solid #f3f4f6;
+    transition: all 0.2s;
+}
+.feature-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.1); }
+.feature-icon {
+    width: 52px; height: 52px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem;
+    margin-bottom: 1.25rem;
+}
+.fi-purple { background: #ede9fe; color: #7c3aed; }
+.fi-blue   { background: #dbeafe; color: #2563eb; }
+.fi-green  { background: #dcfce7; color: #16a34a; }
+.fi-pink   { background: #fce7f3; color: #db2777; }
+.fi-orange { background: #fef3c7; color: #d97706; }
+.fi-cyan   { background: #cffafe; color: #0891b2; }
+.feature-card h3 { font-size: 1.1rem; font-weight: 700; color: #111827; margin-bottom: 0.6rem; }
+.feature-card p { font-size: 0.9rem; color: #6b7280; line-height: 1.6; }
+
+/* ── STATS BANNER ── */
+.stats-banner {
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #1e40af 100%);
+    padding: 60px 1.5rem;
+}
+.stats-inner {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 2rem;
+    max-width: 1000px;
+    margin: 0 auto;
+    text-align: center;
+}
+.stat-item-num {
+    font-size: 2.75rem;
+    font-weight: 800;
+    color: white;
+    line-height: 1;
+    background: linear-gradient(90deg, #a5b4fc, #67e8f9);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.stat-item-label { font-size: 0.9rem; color: rgba(255,255,255,0.65); margin-top: 0.4rem; }
+
+/* ── CTA ── */
+.cta-section {
+    padding: 80px 1.5rem;
+    background: white;
+    text-align: center;
+}
+.cta-box {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 60%, #06b6d4 100%);
+    border-radius: 2rem;
+    padding: 4rem 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+}
+.cta-box::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 400px; height: 400px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 50%;
+}
+.cta-box h2 {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: 800;
+    color: white;
+    margin-bottom: 1rem;
+    position: relative;
+}
+.cta-box p {
+    color: rgba(255,255,255,0.85);
+    font-size: 1.05rem;
+    margin-bottom: 2rem;
+    position: relative;
+}
+.cta-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; position: relative; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- HERO -->
+<section class="hero">
+    <div class="hero-badge"><i class="fas fa-star"></i> AI-Powered Health Predictions</div>
+    <h1>Predict. Prevent.<br><span class="highlight">Protect Your Health.</span></h1>
+    <p>MEDIPREDICT uses advanced machine learning to detect disease risks early — before symptoms appear. Get instant, personalized health insights.</p>
+    <div class="hero-btns">
+        {% if user.is_authenticated %}
+        <a href="{% url 'prediction_app:dashboard' %}" class="btn-hero-primary">
+            <i class="fas fa-th-large"></i> Go to Dashboard
+        </a>
+        <a href="{% url 'prediction_app:diabetes' %}" class="btn-hero-outline">
+            <i class="fas fa-heartbeat"></i> Start Predicting
+        </a>
+        {% else %}
+        <a href="{% url 'users_app:register' %}" class="btn-hero-primary">
+            <i class="fas fa-user-plus"></i> Get Started Free
+        </a>
+        <a href="{% url 'users_app:login' %}" class="btn-hero-outline">
+            <i class="fas fa-sign-in-alt"></i> Login
+        </a>
+        {% endif %}
+    </div>
+    <div class="hero-stats">
+        <div class="hero-stat">
+            <div class="hero-stat-num">6+</div>
+            <div class="hero-stat-label">Diseases Covered</div>
+        </div>
+        <div class="hero-stat">
+            <div class="hero-stat-num">95%</div>
+            <div class="hero-stat-label">Avg Accuracy</div>
+        </div>
+        <div class="hero-stat">
+            <div class="hero-stat-num">{{ total_predictions|default:"0" }}+</div>
+            <div class="hero-stat-label">Predictions Made</div>
+        </div>
+        <div class="hero-stat">
+            <div class="hero-stat-num">24/7</div>
+            <div class="hero-stat-label">Available</div>
+        </div>
+    </div>
+</section>
+
+<!-- DISEASES -->
+<section class="diseases-section">
+    <div class="section-header">
+        <div class="section-tag">Disease Predictions</div>
+        <h2>6 Diseases, One Platform</h2>
+        <p>Our AI models are trained on thousands of real patient records for accurate predictions.</p>
+    </div>
+    <div class="diseases-grid">
+        <a href="{% url 'prediction_app:diabetes' %}" class="disease-card dc-diabetes">
+            <div class="dc-top">
+                <div class="dc-icon"><i class="fas fa-tint"></i></div>
+                <div class="dc-name">Diabetes</div>
+                <div class="dc-desc">Predict Type 2 diabetes risk using glucose, BMI, and other key markers.</div>
+            </div>
+            <div class="dc-bottom">
+                <span class="dc-accuracy">85% Accuracy</span>
+                <span class="dc-btn">Predict →</span>
+            </div>
+        </a>
+        <a href="{% url 'prediction_app:heart' %}" class="disease-card dc-heart">
+            <div class="dc-top">
+                <div class="dc-icon"><i class="fas fa-heart"></i></div>
+                <div class="dc-name">Heart Disease</div>
+                <div class="dc-desc">Assess cardiovascular risk using ECG, cholesterol, and blood pressure data.</div>
+            </div>
+            <div class="dc-bottom">
+                <span class="dc-accuracy">87% Accuracy</span>
+                <span class="dc-btn">Predict →</span>
+            </div>
+        </a>
+        <a href="{% url 'prediction_app:kidney' %}" class="disease-card dc-kidney">
+            <div class="dc-top">
+                <div class="dc-icon"><i class="fas fa-kidneys"></i></div>
+                <div class="dc-name">Kidney Disease</div>
+                <div class="dc-desc">Detect chronic kidney disease from blood and urine test parameters.</div>
+            </div>
+            <div class="dc-bottom">
+                <span class="dc-accuracy">83% Accuracy</span>
+                <span class="dc-btn">Predict →</span>
+            </div>
+        </a>
+        <a href="{% url 'prediction_app:parkinson' %}" class="disease-card dc-parkinson">
+            <div class="dc-top">
+                <div class="dc-icon"><i class="fas fa-brain"></i></div>
+                <div class="dc-name">Parkinson's</div>
+                <div class="dc-desc">Identify Parkinson's disease risk through voice measurement analysis.</div>
+            </div>
+            <div class="dc-bottom">
+                <span class="dc-accuracy">89% Accuracy</span>
+                <span class="dc-btn">Predict →</span>
+            </div>
+        </a>
+        <a href="{% url 'prediction_app:breast_cancer' %}" class="disease-card dc-cancer">
+            <div class="dc-top">
+                <div class="dc-icon"><i class="fas fa-ribbon"></i></div>
+                <div class="dc-name">Breast Cancer</div>
+                <div class="dc-desc">Classify tumors as benign or malignant from biopsy cell measurements.</div>
+            </div>
+            <div class="dc-bottom">
+                <span class="dc-accuracy">92% Accuracy</span>
+                <span class="dc-btn">Predict →</span>
+            </div>
+        </a>
+        <a href="{% url 'prediction_app:liver' %}" class="disease-card dc-liver">
+            <div class="dc-top">
+                <div class="dc-icon"><i class="fas fa-procedures"></i></div>
+                <div class="dc-name">Liver Disease</div>
+                <div class="dc-desc">Predict liver disease from bilirubin, enzyme, and protein levels.</div>
+            </div>
+            <div class="dc-bottom">
+                <span class="dc-accuracy">81% Accuracy</span>
+                <span class="dc-btn">Predict →</span>
+            </div>
+        </a>
+    </div>
+</section>
+
+<!-- STATS BANNER -->
+<section class="stats-banner">
+    <div class="stats-inner">
+        <div>
+            <div class="stat-item-num">10,000+</div>
+            <div class="stat-item-label">Predictions Made</div>
+        </div>
+        <div>
+            <div class="stat-item-num">6</div>
+            <div class="stat-item-label">Disease Models</div>
+        </div>
+        <div>
+            <div class="stat-item-num">95%</div>
+            <div class="stat-item-label">Average Accuracy</div>
+        </div>
+        <div>
+            <div class="stat-item-num">5,000+</div>
+            <div class="stat-item-label">Users Helped</div>
+        </div>
+    </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features-section">
+    <div class="section-header">
+        <div class="section-tag">Why MEDIPREDICT</div>
+        <h2>Built for Your Health</h2>
+        <p>Everything you need to understand and manage your health risks in one place.</p>
+    </div>
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon fi-purple"><i class="fas fa-brain"></i></div>
+            <h3>AI-Powered Predictions</h3>
+            <p>Machine learning models trained on thousands of real patient records for highly accurate results.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon fi-blue"><i class="fas fa-bolt"></i></div>
+            <h3>Instant Results</h3>
+            <p>Get your disease risk assessment in seconds — no waiting, no appointments needed.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon fi-green"><i class="fas fa-shield-alt"></i></div>
+            <h3>Early Detection</h3>
+            <p>Identify potential health risks before symptoms appear, enabling preventive action.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon fi-pink"><i class="fas fa-chart-line"></i></div>
+            <h3>Track Your History</h3>
+            <p>Monitor your health trends over time with detailed prediction history and reports.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon fi-orange"><i class="fas fa-lock"></i></div>
+            <h3>Secure & Private</h3>
+            <p>Your health data is encrypted and never shared. Your privacy is our priority.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon fi-cyan"><i class="fas fa-file-medical"></i></div>
+            <h3>Detailed Reports</h3>
+            <p>Download comprehensive health reports to share with your doctor or keep for records.</p>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+    <div class="cta-box">
+        <h2>Ready to Take Control of Your Health?</h2>
+        <p>Join thousands of users who trust MEDIPREDICT for early disease detection and health monitoring.</p>
+        <div class="cta-btns">
+            {% if user.is_authenticated %}
+            <a href="{% url 'prediction_app:dashboard' %}" class="btn-hero-primary">
+                <i class="fas fa-th-large"></i> Go to Dashboard
+            </a>
+            {% else %}
+            <a href="{% url 'users_app:register' %}" class="btn-hero-primary">
+                <i class="fas fa-user-plus"></i> Create Free Account
+            </a>
+            <a href="{% url 'users_app:login' %}" class="btn-hero-outline">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+{% endblock %}

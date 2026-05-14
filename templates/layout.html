@@ -1,0 +1,160 @@
+{% load static %}
+{% load i18n %}
+
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE|default:'en' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="MediPredict - AI-powered disease prediction system for accurate medical diagnosis and health insights">
+    <meta name="keywords" content="disease prediction, AI diagnosis, medical AI, health monitoring, predictive healthcare">
+    <meta name="author" content="MediPredict Team">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="MediPredict - AI Disease Prediction System">
+    <meta property="og:description" content="Advanced AI system for predicting diseases and providing health insights">
+    <meta property="og:image" content="{% static 'images/og-image.png' %}">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:type" content="website">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="MediPredict - AI Disease Prediction System">
+    <meta name="twitter:description" content="Advanced AI system for predicting diseases and providing health insights">
+    <meta name="twitter:image" content="{% static 'images/twitter-card.png' %}">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="{{ canonical_url|default:request.build_absolute_uri }}">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <meta name="theme-color" content="#0d6efd">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <!-- Dynamic Title -->
+    <title>
+        {% block page_title %}
+        {% if page_title %}{{ page_title }} - {% endif %}MediPredict
+        {% endblock %}
+    </title>
+    
+    {% include 'partials/_head_css.html' %}
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}" data-user-role="{{ user.role|default:'guest' }}">
+    
+    <!-- Accessibility Skip Link -->
+    <a href="#main-content" class="skip-link visually-hidden-focusable">
+        Skip to main content
+    </a>
+    
+    <!-- Offline Alert -->
+    <div id="offline-alert" class="alert alert-warning d-none" role="alert">
+        <i class="bi bi-wifi-off me-2"></i>
+        You are currently offline. Some features may not be available.
+    </div>
+    
+    <!-- Navigation -->
+    {% block navigation %}
+        {% include 'navbar.html' %}
+    {% endblock %}
+    
+    <!-- Page Header -->
+    {% block page_header %}
+    <header class="page-header {% block header_class %}{% endblock %}">
+        <div class="container py-4">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="display-5 fw-bold mb-2">
+                        {% block header_title %}{% endblock %}
+                    </h1>
+                    <p class="lead mb-0 text-muted">
+                        {% block header_subtitle %}{% endblock %}
+                    </p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    {% block header_actions %}{% endblock %}
+                </div>
+            </div>
+        </div>
+    </header>
+    {% endblock %}
+    
+    <!-- Main Content -->
+    <main id="main-content" class="main-content {% block main_class %}{% endblock %}">
+        {% block content_wrapper %}
+        <div class="container-fluid py-4">
+            <div class="row">
+                <!-- Sidebar -->
+                {% block sidebar %}
+                {% if sidebar_visible %}
+                <div class="col-lg-3 col-xl-2 sidebar">
+                    {% include 'partials/_sidebar.html' %}
+                </div>
+                {% endif %}
+                {% endblock %}
+                
+                <!-- Main Content Area -->
+                <div class="{% block content_column_class %}{% if sidebar_visible %}col-lg-9 col-xl-10{% else %}col-12{% endif %}{% endblock %}">
+                    <!-- Breadcrumbs -->
+                    {% block breadcrumbs %}
+                    <nav aria-label="breadcrumb" class="mb-4">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'home' %}"><i class="bi bi-house-door"></i> Home</a></li>
+                            {% block breadcrumb_items %}{% endblock %}
+                        </ol>
+                    </nav>
+                    {% endblock %}
+                    
+                    <!-- Messages -->
+                    {% if messages %}
+                    <div class="messages-container mb-4">
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+                            <div class="d-flex align-items-center">
+                                <i class="bi {% if message.tags == 'success' %}bi-check-circle{% elif message.tags == 'error' %}bi-exclamation-triangle{% else %}bi-info-circle{% endif %} me-2 fs-5"></i>
+                                <div>{{ message }}</div>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Page Content -->
+                    {% block content %}{% endblock %}
+                </div>
+            </div>
+        </div>
+        {% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    {% block footer %}
+        {% include 'footer.html' %}
+    {% endblock %}
+    
+    <!-- Modals -->
+    {% block modals %}{% endblock %}
+    
+    <!-- Scripts -->
+    {% include 'partials/_scripts.html' %}
+    {% block extra_scripts %}{% endblock %}
+    
+    <!-- Service Worker Registration -->
+    {% if not debug %}
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('{% static "js/service-worker.js" %}')
+                .then(function(registration) {
+                    console.log('Service Worker registered with scope:', registration.scope);
+                })
+                .catch(function(error) {
+                    console.log('Service Worker registration failed:', error);
+                });
+        }
+    </script>
+    {% endif %}
+</body>
+</html>

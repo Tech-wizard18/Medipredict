@@ -1,0 +1,213 @@
+{% load static %}
+
+<footer class="footer bg-dark text-white pt-5 pb-4">
+    <div class="container">
+        <div class="row g-4">
+            <!-- Company Info -->
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="footer-about">
+                    <a class="navbar-brand d-flex align-items-center mb-3" href="{% url 'home' %}">
+                        <img src="{% static 'images/logo-white.png' %}" alt="MediPredict Logo" height="40" class="me-2">
+                        <span class="fw-bold fs-4">MediPredict</span>
+                    </a>
+                    <p class="mb-3 text-light-emphasis">
+                        Advanced AI-powered disease prediction system providing accurate medical insights 
+                        and health predictions using cutting-edge machine learning algorithms.
+                    </p>
+                    <div class="social-icons">
+                        <a href="#" class="text-white me-3" title="Facebook">
+                            <i class="bi bi-facebook fs-5"></i>
+                        </a>
+                        <a href="#" class="text-white me-3" title="Twitter">
+                            <i class="bi bi-twitter fs-5"></i>
+                        </a>
+                        <a href="#" class="text-white me-3" title="LinkedIn">
+                            <i class="bi bi-linkedin fs-5"></i>
+                        </a>
+                        <a href="#" class="text-white me-3" title="GitHub">
+                            <i class="bi bi-github fs-5"></i>
+                        </a>
+                        <a href="#" class="text-white" title="YouTube">
+                            <i class="bi bi-youtube fs-5"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="col-lg-2 col-md-6 mb-4">
+                <h5 class="fw-bold mb-4">Quick Links</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <a href="{% url 'home' %}" class="text-light-emphasis text-decoration-none hover-text-white">
+                            <i class="bi bi-chevron-right me-1"></i> Home
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="{% url 'prediction_app:dashboard' %}" class="text-light-emphasis text-decoration-none hover-text-white">
+                            <i class="bi bi-chevron-right me-1"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="{% url 'prediction_app:history' %}" class="text-light-emphasis text-decoration-none hover-text-white">
+                            <i class="bi bi-chevron-right me-1"></i> Prediction History
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="{% url 'prediction_app:reports' %}" class="text-light-emphasis text-decoration-none hover-text-white">
+                            <i class="bi bi-chevron-right me-1"></i> Health Reports
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="#" class="text-light-emphasis text-decoration-none hover-text-white" data-bs-toggle="modal" data-bs-target="#aboutModal">
+                            <i class="bi bi-chevron-right me-1"></i> About Us
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Diseases -->
+            <div class="col-lg-3 col-md-6 mb-4">
+                <h5 class="fw-bold mb-4">Supported Diseases</h5>
+                <div class="row">
+                    <div class="col-6">
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <a href="{% url 'prediction_app:diabetes' %}" class="text-light-emphasis text-decoration-none hover-text-white">
+                                    <i class="bi bi-droplet me-1"></i> Diabetes
+                                </a>
+                            </li>
+                            <li class="mb-2">
+                                <a href="{% url 'prediction_app:heart' %}" class="text-light-emphasis text-decoration-none hover-text-white">
+                                    <i class="bi bi-heart-pulse me-1"></i> Heart Disease
+                                </a>
+                            </li>
+                            <li class="mb-2">
+                                <a href="{% url 'prediction_app:kidney' %}" class="text-light-emphasis text-decoration-none hover-text-white">
+                                    <i class="bi bi-lungs me-1"></i> Kidney Disease
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-6">
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <a href="{% url 'prediction_app:parkinson' %}" class="text-light-emphasis text-decoration-none hover-text-white">
+                                    <i class="bi bi-person-standing-dress me-1"></i> Parkinson's
+                                </a>
+                            </li>
+                            <li class="mb-2">
+                                <a href="{% url 'prediction_app:breast_cancer' %}" class="text-light-emphasis text-decoration-none hover-text-white">
+                                    <i class="bi bi-gender-female me-1"></i> Breast Cancer
+                                </a>
+                            </li>
+                            <li class="mb-2">
+                                <a href="{% url 'prediction_app:liver' %}" class="text-light-emphasis text-decoration-none hover-text-white">
+                                    <i class="bi bi-prescription me-1"></i> Liver Disease
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Info -->
+            <div class="col-lg-3 col-md-6 mb-4">
+                <h5 class="fw-bold mb-4">Contact Us</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-3">
+                        <div class="d-flex">
+                            <i class="bi bi-geo-alt me-3 mt-1"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1">Address</h6>
+                                <p class="mb-0 text-light-emphasis">123 Medical Street<br>Health City, HC 12345</p>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="mb-3">
+                        <div class="d-flex">
+                            <i class="bi bi-telephone me-3 mt-1"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1">Phone</h6>
+                                <p class="mb-0 text-light-emphasis">+1 (555) 123-4567</p>
+                            </div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="d-flex">
+                            <i class="bi bi-envelope me-3 mt-1"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1">Email</h6>
+                                <p class="mb-0 text-light-emphasis">support@medipredict.com</p>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+                
+                <!-- Newsletter -->
+                <div class="mt-4">
+                    <h6 class="fw-bold mb-2">Subscribe to Newsletter</h6>
+                    <form class="newsletter-form" id="newsletterForm">
+                        <div class="input-group">
+                            <input type="email" class="form-control" placeholder="Your email" 
+                                   aria-label="Email" required>
+                            <button class="btn btn-primary" type="submit">
+                                <i class="bi bi-send"></i>
+                            </button>
+                        </div>
+                        <small class="form-text text-light-emphasis">Get updates on new features</small>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <hr class="my-4 border-light">
+
+        <!-- Bottom Bar -->
+        <div class="row align-items-center">
+            <div class="col-md-6 mb-3 mb-md-0">
+                <p class="mb-0 text-light-emphasis">
+                    &copy; {% now "Y" %} MediPredict. All rights reserved.
+                </p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <ul class="list-inline mb-0">
+                    <li class="list-inline-item me-3">
+                        <a href="{% url 'prediction_app:privacy_policy' %}" class="text-light-emphasis text-decoration-none hover-text-white">
+                            Privacy Policy
+                        </a>
+                    </li>
+                    <li class="list-inline-item me-3">
+                        <a href="{% url 'prediction_app:terms_of_service' %}" class="text-light-emphasis text-decoration-none hover-text-white">
+                            Terms of Service
+                        </a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href="{% url 'prediction_app:privacy_policy' %}" class="text-light-emphasis text-decoration-none hover-text-white">
+                            Cookie Policy
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Disclaimer -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="alert alert-warning alert-dismissible fade show mb-0" role="alert">
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+                        <div>
+                            <strong class="fw-bold">Disclaimer:</strong> 
+                            MediPredict provides AI-based predictions for informational purposes only. 
+                            This is not a substitute for professional medical advice, diagnosis, or treatment. 
+                            Always seek the advice of your physician or other qualified health provider with 
+                            any questions you may have regarding a medical condition.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>

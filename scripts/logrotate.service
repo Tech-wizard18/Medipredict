@@ -1,0 +1,15 @@
+[Unit]
+Description=MEDIPREDICT Log Rotation Service
+After=network.target
+
+[Service]
+Type=oneshot
+User=www-data
+Group=www-data
+WorkingDirectory=/path/to/medipredict
+ExecStart=/bin/bash scripts/log_rotation.sh
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

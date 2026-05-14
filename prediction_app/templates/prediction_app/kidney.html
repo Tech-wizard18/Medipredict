@@ -1,0 +1,2017 @@
+{% extends 'prediction_app/base.html' %}
+{% load static %}
+
+{% block title %}Kidney Disease Prediction - MEDIPREDICT{% endblock %}
+
+{% block extra_css %}
+<style>
+    .prediction-page {
+        padding: 2rem 0;
+        min-height: calc(100vh - 200px);
+    }
+    
+    .page-header {
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .page-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: var(--gray-900);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+    }
+    
+    .page-subtitle {
+        color: var(--gray-600);
+        font-size: 1.125rem;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .prediction-container {
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 3rem;
+        margin-bottom: 3rem;
+    }
+    
+    @media (max-width: 1024px) {
+        .prediction-container {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    .prediction-form-container {
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .form-header {
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--info-color);
+    }
+    
+    .form-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--gray-900);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .form-title i {
+        color: var(--info-color);
+    }
+    
+    .form-description {
+        color: var(--gray-600);
+        margin-top: 0.5rem;
+        line-height: 1.6;
+    }
+    
+    .prediction-form {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: var(--gray-700);
+        font-size: 0.95rem;
+    }
+    
+    .form-label .required {
+        color: var(--danger-color);
+    }
+    
+    .form-control, .form-select {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid var(--gray-300);
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: var(--gray-50);
+    }
+    
+    .form-select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+        background-position: right 0.5rem center;
+        background-repeat: no-repeat;
+        background-size: 1.5em 1.5em;
+        padding-right: 2.5rem;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        outline: none;
+        border-color: var(--info-color);
+        box-shadow: 0 0 0 3px rgba(var(--info-color-rgb), 0.1);
+        background: white;
+    }
+    
+    .form-control.is-invalid, .form-select.is-invalid {
+        border-color: var(--danger-color);
+    }
+    
+    .invalid-feedback {
+        color: var(--danger-color);
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: none;
+    }
+    
+    .form-control.is-invalid + .invalid-feedback,
+    .form-select.is-invalid + .invalid-feedback {
+        display: block;
+    }
+    
+    .range-container {
+        position: relative;
+    }
+    
+    .range-slider {
+        width: 100%;
+        height: 8px;
+        -webkit-appearance: none;
+        background: var(--gray-300);
+        border-radius: 4px;
+        outline: none;
+        margin: 1rem 0;
+    }
+    
+    .range-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 20px;
+        height: 20px;
+        background: var(--info-color);
+        border-radius: 50%;
+        cursor: pointer;
+        border: 2px solid white;
+        box-shadow: var(--shadow);
+    }
+    
+    .range-value {
+        position: absolute;
+        top: -25px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--info-color);
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+    
+    .range-value::after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 5px solid transparent;
+        border-top-color: var(--info-color);
+    }
+    
+    .range-labels {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 0.5rem;
+        font-size: 0.875rem;
+        color: var(--gray-600);
+    }
+    
+    .form-help {
+        font-size: 0.875rem;
+        color: var(--gray-500);
+        margin-top: 0.25rem;
+        line-height: 1.4;
+    }
+    
+    .form-actions {
+        grid-column: 1 / -1;
+        margin-top: 1rem;
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+    }
+    
+    .btn-predict {
+        padding: 0.875rem 2rem;
+        font-size: 1rem;
+        font-weight: 600;
+        background: linear-gradient(135deg, var(--info-color), var(--info-dark));
+        border: none;
+    }
+    
+    .results-container {
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        box-shadow: var(--shadow-lg);
+        display: none;
+    }
+    
+    .results-container.active {
+        display: block;
+        animation: fadeIn 0.5s ease;
+    }
+    
+    .results-header {
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .results-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--gray-900);
+        margin-bottom: 0.5rem;
+    }
+    
+    .results-subtitle {
+        color: var(--gray-600);
+    }
+    
+    .result-card {
+        text-align: center;
+        padding: 2rem;
+        border-radius: 1rem;
+        background: var(--gray-50);
+        margin-bottom: 2rem;
+        border: 2px solid var(--info-light);
+    }
+    
+    .result-badge {
+        display: inline-block;
+        padding: 0.5rem 1.5rem;
+        border-radius: 9999px;
+        font-weight: 600;
+        font-size: 1.125rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .badge-positive {
+        background: rgba(var(--danger-color-rgb), 0.1);
+        color: var(--danger-dark);
+        border: 2px solid var(--danger-color);
+    }
+    
+    .badge-negative {
+        background: rgba(var(--success-color-rgb), 0.1);
+        color: var(--success-dark);
+        border: 2px solid var(--success-color);
+    }
+    
+    .probability-meter {
+        width: 200px;
+        height: 200px;
+        margin: 0 auto 1.5rem;
+        position: relative;
+    }
+    
+    .probability-circle {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        position: relative;
+        background: conic-gradient(
+            var(--danger-color) 0% var(--percentage, 0%),
+            var(--gray-300) var(--percentage, 0%) 100%
+        );
+    }
+    
+    .probability-circle::before {
+        content: '';
+        position: absolute;
+        width: 80%;
+        height: 80%;
+        background: white;
+        border-radius: 50%;
+        top: 10%;
+        left: 10%;
+    }
+    
+    .probability-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--gray-900);
+    }
+    
+    .probability-label {
+        font-size: 1rem;
+        color: var(--gray-600);
+        margin-top: 0.25rem;
+    }
+    
+    .result-details {
+        background: white;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--gray-200);
+    }
+    
+    .detail-item:last-child {
+        border-bottom: none;
+    }
+    
+    .detail-label {
+        font-weight: 600;
+        color: var(--gray-700);
+    }
+    
+    .detail-value {
+        color: var(--gray-900);
+    }
+    
+    .recommendations {
+        background: rgba(var(--info-color-rgb), 0.05);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        border-left: 4px solid var(--info-color);
+    }
+    
+    .recommendations-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: var(--gray-900);
+    }
+    
+    .recommendations-list {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .recommendations-list li {
+        padding: 0.5rem 0;
+        padding-left: 1.5rem;
+        position: relative;
+        color: var(--gray-700);
+    }
+    
+    .recommendations-list li::before {
+        content: '💧';
+        position: absolute;
+        left: 0;
+        font-size: 0.9rem;
+    }
+    
+    .result-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+    
+    .info-sidebar {
+        background: var(--gray-50);
+        border-radius: 1rem;
+        padding: 2rem;
+    }
+    
+    .info-card {
+        margin-bottom: 2rem;
+    }
+    
+    .info-card:last-child {
+        margin-bottom: 0;
+    }
+    
+    .info-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: var(--gray-900);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .info-content {
+        color: var(--gray-700);
+        line-height: 1.6;
+    }
+    
+    .info-content ul {
+        padding-left: 1.25rem;
+        margin: 0.5rem 0;
+    }
+    
+    .info-content li {
+        margin-bottom: 0.5rem;
+    }
+    
+    .risk-factors {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .risk-factor {
+        background: white;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        text-align: center;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.3s ease;
+    }
+    
+    .risk-factor:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow);
+    }
+    
+    .risk-factor-icon {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        color: var(--info-color);
+    }
+    
+    .risk-factor-label {
+        font-size: 0.875rem;
+        color: var(--gray-700);
+    }
+    
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        display: none;
+    }
+    
+    .loading-overlay.active {
+        display: flex;
+        animation: fadeIn 0.3s ease;
+    }
+    
+    .loading-spinner {
+        text-align: center;
+    }
+    
+    .spinner {
+        width: 50px;
+        height: 50px;
+        border: 3px solid var(--gray-300);
+        border-top-color: var(--info-color);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 1rem;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    .input-group {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+    
+    .input-group-text {
+        background: var(--gray-200);
+        padding: 0.75rem 1rem;
+        border: 2px solid var(--gray-300);
+        border-radius: 0.5rem;
+        font-weight: 600;
+        color: var(--gray-700);
+        min-width: 60px;
+        text-align: center;
+    }
+    
+    .form-section {
+        grid-column: 1 / -1;
+        margin: 1.5rem 0;
+        padding: 1.5rem;
+        background: var(--gray-50);
+        border-radius: 0.75rem;
+        border-left: 4px solid var(--info-color);
+    }
+    
+    .section-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: var(--gray-900);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    @media (max-width: 768px) {
+        .page-title {
+            font-size: 2rem;
+        }
+        
+        .prediction-form {
+            grid-template-columns: 1fr;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+        }
+        
+        .btn-predict {
+            width: 100%;
+        }
+        
+        .result-actions {
+            flex-direction: column;
+        }
+        
+        .input-group {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .input-group-text {
+            width: 100%;
+            text-align: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="prediction-page">
+    <div class="container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="page-title">
+                <i class="fas fa-kidneys"></i>
+                Kidney Disease Prediction
+            </h1>
+            <p class="page-subtitle">
+                Assess your kidney function and detect potential kidney disease risks. 
+                Our AI model analyzes multiple kidney health parameters.
+            </p>
+        </div>
+
+        <!-- Main Content -->
+        <div class="prediction-container">
+            <!-- Form Section -->
+            <div class="prediction-form-container">
+                <div class="form-header">
+                    <h2 class="form-title">
+                        <i class="fas fa-vial"></i>
+                        Kidney Function Assessment
+                    </h2>
+                    <p class="form-description">
+                        Provide accurate kidney function test results for comprehensive assessment. 
+                        Use recent medical test values for best accuracy.
+                    </p>
+                </div>
+
+                <form id="kidneyForm" class="prediction-form" method="POST" novalidate>
+                    {% csrf_token %}
+                    
+                    <!-- Personal Information Section -->
+                    <div class="form-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-user"></i> Personal Information
+                        </h3>
+                        
+                        <!-- Age -->
+                        <div class="form-group">
+                            <label for="age" class="form-label">
+                                Age (Years) <span class="required">*</span>
+                            </label>
+                            <div class="range-container">
+                                <input type="range" 
+                                       id="ageSlider" 
+                                       class="range-slider"
+                                       min="0" 
+                                       max="120" 
+                                       step="1"
+                                       value="40">
+                                <div class="range-value" id="ageValue">40</div>
+                                <div class="range-labels">
+                                    <span>0</span>
+                                    <span>60</span>
+                                    <span>120</span>
+                                </div>
+                            </div>
+                            <input type="number" 
+                                   id="age" 
+                                   name="age" 
+                                   class="form-control mt-2"
+                                   min="0" 
+                                   max="120" 
+                                   step="1"
+                                   required
+                                   value="40">
+                            <div class="invalid-feedback">Please enter a valid age</div>
+                        </div>
+
+                        <!-- Blood Pressure -->
+                        <div class="form-group">
+                            <label for="blood_pressure" class="form-label">
+                                Blood Pressure (mm Hg) <span class="required">*</span>
+                            </label>
+                            <div class="range-container">
+                                <input type="range" 
+                                       id="bpSlider" 
+                                       class="range-slider"
+                                       min="0" 
+                                       max="300" 
+                                       step="1"
+                                       value="120">
+                                <div class="range-value" id="bpValue">120</div>
+                                <div class="range-labels">
+                                    <span>0</span>
+                                    <span>150</span>
+                                    <span>300</span>
+                                </div>
+                            </div>
+                            <input type="number" 
+                                   id="blood_pressure" 
+                                   name="blood_pressure" 
+                                   class="form-control mt-2"
+                                   min="0" 
+                                   max="300" 
+                                   step="1"
+                                   required
+                                   value="120">
+                            <div class="form-help">Diastolic blood pressure</div>
+                            <div class="invalid-feedback">Please enter valid blood pressure</div>
+                        </div>
+                    </div>
+
+                    <!-- Urine Analysis Section -->
+                    <div class="form-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-flask"></i> Urine Analysis
+                        </h3>
+                        
+                        <!-- Specific Gravity -->
+                        <div class="form-group">
+                            <label for="specific_gravity" class="form-label">
+                                Specific Gravity <span class="required">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">SG</span>
+                                <input type="number" 
+                                       id="specific_gravity" 
+                                       name="specific_gravity" 
+                                       class="form-control"
+                                       min="1.000" 
+                                       max="1.050" 
+                                       step="0.001"
+                                       required
+                                       value="1.015"
+                                       placeholder="1.015">
+                            </div>
+                            <div class="form-help">Urine specific gravity (Normal: 1.005-1.030)</div>
+                            <div class="invalid-feedback">Please enter valid specific gravity</div>
+                        </div>
+
+                        <!-- Albumin -->
+                        <div class="form-group">
+                            <label for="albumin" class="form-label">
+                                Albumin <span class="required">*</span>
+                            </label>
+                            <select id="albumin" name="albumin" class="form-select" required>
+                                <option value="">Select albumin level</option>
+                                <option value="0">0 - Normal</option>
+                                <option value="1" selected>1 - Trace</option>
+                                <option value="2">2 - Moderate</option>
+                                <option value="3">3 - Severe</option>
+                                <option value="4">4 - Massive</option>
+                                <option value="5">5 - Not tested</option>
+                            </select>
+                            <div class="form-help">Albumin level in urine</div>
+                            <div class="invalid-feedback">Please select albumin level</div>
+                        </div>
+
+                        <!-- Sugar -->
+                        <div class="form-group">
+                            <label for="sugar" class="form-label">
+                                Sugar <span class="required">*</span>
+                            </label>
+                            <select id="sugar" name="sugar" class="form-select" required>
+                                <option value="">Select sugar level</option>
+                                <option value="0" selected>0 - Normal</option>
+                                <option value="1">1 - Trace</option>
+                                <option value="2">2 - Moderate</option>
+                                <option value="3">3 - Severe</option>
+                                <option value="4">4 - Massive</option>
+                                <option value="5">5 - Not tested</option>
+                            </select>
+                            <div class="form-help">Sugar level in urine</div>
+                            <div class="invalid-feedback">Please select sugar level</div>
+                        </div>
+
+                        <!-- Red Blood Cells -->
+                        <div class="form-group">
+                            <label for="red_blood_cells" class="form-label">
+                                Red Blood Cells <span class="required">*</span>
+                            </label>
+                            <select id="red_blood_cells" name="red_blood_cells" class="form-select" required>
+                                <option value="">Select RBC status</option>
+                                <option value="0" selected>Normal</option>
+                                <option value="1">Abnormal</option>
+                            </select>
+                            <div class="form-help">Red blood cells in urine</div>
+                            <div class="invalid-feedback">Please select RBC status</div>
+                        </div>
+
+                        <!-- Pus Cell -->
+                        <div class="form-group">
+                            <label for="pus_cell" class="form-label">
+                                Pus Cell <span class="required">*</span>
+                            </label>
+                            <select id="pus_cell" name="pus_cell" class="form-select" required>
+                                <option value="">Select pus cell status</option>
+                                <option value="0" selected>Normal</option>
+                                <option value="1">Abnormal</option>
+                            </select>
+                            <div class="form-help">Pus cells in urine</div>
+                            <div class="invalid-feedback">Please select pus cell status</div>
+                        </div>
+
+                        <!-- Pus Cell Clumps -->
+                        <div class="form-group">
+                            <label for="pus_cell_clumps" class="form-label">
+                                Pus Cell Clumps <span class="required">*</span>
+                            </label>
+                            <select id="pus_cell_clumps" name="pus_cell_clumps" class="form-select" required>
+                                <option value="">Select clumps status</option>
+                                <option value="0" selected>Not Present</option>
+                                <option value="1">Present</option>
+                            </select>
+                            <div class="form-help">Pus cell clumps in urine</div>
+                            <div class="invalid-feedback">Please select clumps status</div>
+                        </div>
+
+                        <!-- Bacteria -->
+                        <div class="form-group">
+                            <label for="bacteria" class="form-label">
+                                Bacteria <span class="required">*</span>
+                            </label>
+                            <select id="bacteria" name="bacteria" class="form-select" required>
+                                <option value="">Select bacteria status</option>
+                                <option value="0" selected>Not Present</option>
+                                <option value="1">Present</option>
+                            </select>
+                            <div class="form-help">Bacteria in urine</div>
+                            <div class="invalid-feedback">Please select bacteria status</div>
+                        </div>
+                    </div>
+
+                    <!-- Blood Tests Section -->
+                    <div class="form-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-tint"></i> Blood Tests
+                        </h3>
+                        
+                        <!-- Blood Glucose -->
+                        <div class="form-group">
+                            <label for="blood_glucose_random" class="form-label">
+                                Random Blood Glucose (mg/dL) <span class="required">*</span>
+                            </label>
+                            <div class="range-container">
+                                <input type="range" 
+                                       id="glucoseSlider" 
+                                       class="range-slider"
+                                       min="0" 
+                                       max="500" 
+                                       step="1"
+                                       value="100">
+                                <div class="range-value" id="glucoseValue">100</div>
+                                <div class="range-labels">
+                                    <span>0</span>
+                                    <span>250</span>
+                                    <span>500</span>
+                                </div>
+                            </div>
+                            <input type="number" 
+                                   id="blood_glucose_random" 
+                                   name="blood_glucose_random" 
+                                   class="form-control mt-2"
+                                   min="0" 
+                                   max="500" 
+                                   step="0.1"
+                                   required
+                                   value="100">
+                            <div class="form-help">Random blood glucose level</div>
+                            <div class="invalid-feedback">Please enter valid glucose level</div>
+                        </div>
+
+                        <!-- Blood Urea -->
+                        <div class="form-group">
+                            <label for="blood_urea" class="form-label">
+                                Blood Urea (mg/dL) <span class="required">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">mg/dL</span>
+                                <input type="number" 
+                                       id="blood_urea" 
+                                       name="blood_urea" 
+                                       class="form-control"
+                                       min="0" 
+                                       max="200" 
+                                       step="0.1"
+                                       required
+                                       value="20"
+                                       placeholder="Enter blood urea">
+                            </div>
+                            <div class="form-help">Blood urea nitrogen level (Normal: 7-20 mg/dL)</div>
+                            <div class="invalid-feedback">Please enter valid blood urea</div>
+                        </div>
+
+                        <!-- Serum Creatinine -->
+                        <div class="form-group">
+                            <label for="serum_creatinine" class="form-label">
+                                Serum Creatinine (mg/dL) <span class="required">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">mg/dL</span>
+                                <input type="number" 
+                                       id="serum_creatinine" 
+                                       name="serum_creatinine" 
+                                       class="form-control"
+                                       min="0" 
+                                       max="20" 
+                                       step="0.01"
+                                       required
+                                       value="0.9"
+                                       placeholder="Enter creatinine">
+                            </div>
+                            <div class="form-help">Serum creatinine level (Normal: 0.6-1.2 mg/dL)</div>
+                            <div class="invalid-feedback">Please enter valid creatinine</div>
+                        </div>
+
+                        <!-- Sodium -->
+                        <div class="form-group">
+                            <label for="sodium" class="form-label">
+                                Sodium (mEq/L) <span class="required">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">mEq/L</span>
+                                <input type="number" 
+                                       id="sodium" 
+                                       name="sodium" 
+                                       class="form-control"
+                                       min="100" 
+                                       max="200" 
+                                       step="0.1"
+                                       required
+                                       value="140"
+                                       placeholder="Enter sodium level">
+                            </div>
+                            <div class="form-help">Serum sodium level (Normal: 135-145 mEq/L)</div>
+                            <div class="invalid-feedback">Please enter valid sodium level</div>
+                        </div>
+
+                        <!-- Potassium -->
+                        <div class="form-group">
+                            <label for="potassium" class="form-label">
+                                Potassium (mEq/L) <span class="required">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">mEq/L</span>
+                                <input type="number" 
+                                       id="potassium" 
+                                       name="potassium" 
+                                       class="form-control"
+                                       min="0" 
+                                       max="10" 
+                                       step="0.1"
+                                       required
+                                       value="4.0"
+                                       placeholder="Enter potassium level">
+                            </div>
+                            <div class="form-help">Serum potassium level (Normal: 3.5-5.0 mEq/L)</div>
+                            <div class="invalid-feedback">Please enter valid potassium level</div>
+                        </div>
+
+                        <!-- Hemoglobin -->
+                        <div class="form-group">
+                            <label for="hemoglobin" class="form-label">
+                                Hemoglobin (g/dL) <span class="required">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">g/dL</span>
+                                <input type="number" 
+                                       id="hemoglobin" 
+                                       name="hemoglobin" 
+                                       class="form-control"
+                                       min="0" 
+                                       max="20" 
+                                       step="0.1"
+                                       required
+                                       value="14.0"
+                                       placeholder="Enter hemoglobin">
+                            </div>
+                            <div class="form-help">Hemoglobin level (Normal: 13.5-17.5 g/dL for men, 12.0-15.5 g/dL for women)</div>
+                            <div class="invalid-feedback">Please enter valid hemoglobin</div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Parameters Section -->
+                    <div class="form-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-clipboard-list"></i> Additional Parameters
+                        </h3>
+                        
+                        <!-- Packed Cell Volume -->
+                        <div class="form-group">
+                            <label for="packed_cell_volume" class="form-label">
+                                Packed Cell Volume (%) <span class="required">*</span>
+                            </label>
+                            <div class="range-container">
+                                <input type="range" 
+                                       id="pcvSlider" 
+                                       class="range-slider"
+                                       min="0" 
+                                       max="100" 
+                                       step="1"
+                                       value="45">
+                                <div class="range-value" id="pcvValue">45%</div>
+                                <div class="range-labels">
+                                    <span>0%</span>
+                                    <span>50%</span>
+                                    <span>100%</span>
+                                </div>
+                            </div>
+                            <input type="number" 
+                                   id="packed_cell_volume" 
+                                   name="packed_cell_volume" 
+                                   class="form-control mt-2"
+                                   min="0" 
+                                   max="100" 
+                                   step="1"
+                                   required
+                                   value="45">
+                            <div class="form-help">Packed cell volume/hematocrit (Normal: 40-54% for men, 36-48% for women)</div>
+                            <div class="invalid-feedback">Please enter valid PCV</div>
+                        </div>
+
+                        <!-- White Blood Cell Count -->
+                        <div class="form-group">
+                            <label for="white_blood_cell_count" class="form-label">
+                                White Blood Cell Count (cells/cumm) <span class="required">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">x10³/µL</span>
+                                <input type="number" 
+                                       id="white_blood_cell_count" 
+                                       name="white_blood_cell_count" 
+                                       class="form-control"
+                                       min="0" 
+                                       max="50000" 
+                                       step="1"
+                                       required
+                                       value="7000"
+                                       placeholder="Enter WBC count">
+                            </div>
+                            <div class="form-help">White blood cell count (Normal: 4,000-11,000 cells/cumm)</div>
+                            <div class="invalid-feedback">Please enter valid WBC count</div>
+                        </div>
+
+                        <!-- Red Blood Cell Count -->
+                        <div class="form-group">
+                            <label for="red_blood_cell_count" class="form-label">
+                                Red Blood Cell Count (million/cumm) <span class="required">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">million/µL</span>
+                                <input type="number" 
+                                       id="red_blood_cell_count" 
+                                       name="red_blood_cell_count" 
+                                       class="form-control"
+                                       min="0" 
+                                       max="10" 
+                                       step="0.1"
+                                       required
+                                       value="5.0"
+                                       placeholder="Enter RBC count">
+                            </div>
+                            <div class="form-help">Red blood cell count (Normal: 4.7-6.1 million/µL for men, 4.2-5.4 million/µL for women)</div>
+                            <div class="invalid-feedback">Please enter valid RBC count</div>
+                        </div>
+
+                        <!-- Hypertension -->
+                        <div class="form-group">
+                            <label for="hypertension" class="form-label">
+                                Hypertension <span class="required">*</span>
+                            </label>
+                            <select id="hypertension" name="hypertension" class="form-select" required>
+                                <option value="">Select hypertension status</option>
+                                <option value="0" selected>No</option>
+                                <option value="1">Yes</option>
+                            </select>
+                            <div class="form-help">History of high blood pressure</div>
+                            <div class="invalid-feedback">Please select hypertension status</div>
+                        </div>
+
+                        <!-- Diabetes Mellitus -->
+                        <div class="form-group">
+                            <label for="diabetes_mellitus" class="form-label">
+                                Diabetes Mellitus <span class="required">*</span>
+                            </label>
+                            <select id="diabetes_mellitus" name="diabetes_mellitus" class="form-select" required>
+                                <option value="">Select diabetes status</option>
+                                <option value="0" selected>No</option>
+                                <option value="1">Yes</option>
+                            </select>
+                            <div class="form-help">History of diabetes</div>
+                            <div class="invalid-feedback">Please select diabetes status</div>
+                        </div>
+
+                        <!-- Coronary Artery Disease -->
+                        <div class="form-group">
+                            <label for="coronary_artery_disease" class="form-label">
+                                Coronary Artery Disease <span class="required">*</span>
+                            </label>
+                            <select id="coronary_artery_disease" name="coronary_artery_disease" class="form-select" required>
+                                <option value="">Select CAD status</option>
+                                <option value="0" selected>No</option>
+                                <option value="1">Yes</option>
+                            </select>
+                            <div class="form-help">History of coronary artery disease</div>
+                            <div class="invalid-feedback">Please select CAD status</div>
+                        </div>
+
+                        <!-- Appetite -->
+                        <div class="form-group">
+                            <label for="appetite" class="form-label">
+                                Appetite <span class="required">*</span>
+                            </label>
+                            <select id="appetite" name="appetite" class="form-select" required>
+                                <option value="">Select appetite status</option>
+                                <option value="0" selected>Good</option>
+                                <option value="1">Poor</option>
+                            </select>
+                            <div class="form-help">Current appetite level</div>
+                            <div class="invalid-feedback">Please select appetite status</div>
+                        </div>
+
+                        <!-- Pedal Edema -->
+                        <div class="form-group">
+                            <label for="pedal_edema" class="form-label">
+                                Pedal Edema <span class="required">*</span>
+                            </label>
+                            <select id="pedal_edema" name="pedal_edema" class="form-select" required>
+                                <option value="">Select edema status</option>
+                                <option value="0" selected>No</option>
+                                <option value="1">Yes</option>
+                            </select>
+                            <div class="form-help">Swelling in feet/ankles</div>
+                            <div class="invalid-feedback">Please select edema status</div>
+                        </div>
+
+                        <!-- Anemia -->
+                        <div class="form-group">
+                            <label for="anemia" class="form-label">
+                                Anemia <span class="required">*</span>
+                            </label>
+                            <select id="anemia" name="anemia" class="form-select" required>
+                                <option value="">Select anemia status</option>
+                                <option value="0" selected>No</option>
+                                <option value="1">Yes</option>
+                            </select>
+                            <div class="form-help">Diagnosed anemia</div>
+                            <div class="invalid-feedback">Please select anemia status</div>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" onclick="resetForm()">
+                            <i class="fas fa-redo"></i> Reset
+                        </button>
+                        <button type="submit" class="btn btn-predict" id="predictBtn">
+                            <i class="fas fa-kidneys"></i> Predict Kidney Disease Risk
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results-container" id="resultsContainer">
+                <div class="results-header">
+                    <h2 class="results-title">Kidney Function Assessment</h2>
+                    <p class="results-subtitle">Chronic kidney disease risk prediction results</p>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-badge badge-negative" id="resultBadge">
+                        Low Risk
+                    </div>
+                    
+                    <div class="probability-meter">
+                        <div class="probability-circle" id="probabilityCircle" style="--percentage: 12%">
+                            <div class="probability-text" id="probabilityText">12%</div>
+                        </div>
+                    </div>
+                    <div class="probability-label" id="probabilityLabel">Probability of Kidney Disease</div>
+
+                    <div class="confidence-level mt-3">
+                        <div class="detail-item">
+                            <span class="detail-label">Confidence Level:</span>
+                            <span class="detail-value" id="confidenceValue">91%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Prediction ID:</span>
+                        <span class="detail-value" id="predictionId">#KDY-001</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Date & Time:</span>
+                        <span class="detail-value" id="predictionDate">{{ current_date|date:"M d, Y H:i" }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Model Accuracy:</span>
+                        <span class="detail-value" id="modelAccuracy">94.8%</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">GFR Estimate:</span>
+                        <span class="detail-value" id="gfrEstimate">92 mL/min</span>
+                    </div>
+                </div>
+
+                <div class="recommendations">
+                    <h3 class="recommendations-title">
+                        <i class="fas fa-kidneys"></i> Kidney Health Recommendations
+                    </h3>
+                    <ul class="recommendations-list" id="recommendationsList">
+                        <li>Stay hydrated - drink 8 glasses of water daily</li>
+                        <li>Monitor blood pressure regularly</li>
+                        <li>Limit sodium intake to less than 2,300 mg/day</li>
+                        <li>Maintain healthy blood sugar levels</li>
+                        <li>Avoid NSAIDs and other kidney-damaging medications</li>
+                        <li>Get regular kidney function tests</li>
+                        <li>Exercise regularly and maintain healthy weight</li>
+                    </ul>
+                </div>
+
+                <div class="result-actions">
+                    <button class="btn btn-outline" onclick="savePrediction()">
+                        <i class="fas fa-save"></i> Save Results
+                    </button>
+                    <button class="btn btn-info" onclick="generateReport()">
+                        <i class="fas fa-file-pdf"></i> Download Report
+                    </button>
+                    <button class="btn btn-success" onclick="shareResults()">
+                        <i class="fas fa-share-alt"></i> Share
+                    </button>
+                </div>
+            </div>
+
+            <!-- Info Sidebar -->
+            <div class="info-sidebar">
+                <div class="info-card">
+                    <h3 class="info-title">
+                        <i class="fas fa-info-circle"></i> About Kidney Disease
+                    </h3>
+                    <div class="info-content">
+                        <p>Chronic kidney disease (CKD) is a gradual loss of kidney function over time. Early detection is crucial for preventing progression.</p>
+                        
+                        <h4>Common Symptoms:</h4>
+                        <ul>
+                            <li>Fatigue and weakness</li>
+                            <li>Swelling in legs, ankles or feet</li>
+                            <li>Shortness of breath</li>
+                            <li>Nausea and vomiting</li>
+                            <li>Changes in urine output</li>
+                            <li>Persistent itching</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <h3 class="info-title">
+                        <i class="fas fa-chart-line"></i> Key Risk Factors
+                    </h3>
+                    <div class="risk-factors">
+                        <div class="risk-factor">
+                            <div class="risk-factor-icon">
+                                <i class="fas fa-tachometer-alt"></i>
+                            </div>
+                            <div class="risk-factor-label">High BP</div>
+                        </div>
+                        <div class="risk-factor">
+                            <div class="risk-factor-icon">
+                                <i class="fas fa-candy-cane"></i>
+                            </div>
+                            <div class="risk-factor-label">Diabetes</div>
+                        </div>
+                        <div class="risk-factor">
+                            <div class="risk-factor-icon">
+                                <i class="fas fa-user-friends"></i>
+                            </div>
+                            <div class="risk-factor-label">Family History</div>
+                        </div>
+                        <div class="risk-factor">
+                            <div class="risk-factor-icon">
+                                <i class="fas fa-heart"></i>
+                            </div>
+                            <div class="risk-factor-label">Heart Disease</div>
+                        </div>
+                        <div class="risk-factor">
+                            <div class="risk-factor-icon">
+                                <i class="fas fa-smoking"></i>
+                            </div>
+                            <div class="risk-factor-label">Smoking</div>
+                        </div>
+                        <div class="risk-factor">
+                            <div class="risk-factor-icon">
+                                <i class="fas fa-weight"></i>
+                            </div>
+                            <div class="risk-factor-label">Obesity</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <h3 class="info-title">
+                        <i class="fas fa-shield-alt"></i> Prevention Tips
+                    </h3>
+                    <div class="info-content">
+                        <ul>
+                            <li>Control blood pressure</li>
+                            <li>Manage blood sugar if diabetic</li>
+                            <li>Maintain healthy weight</li>
+                            <li>Stay physically active</li>
+                            <li>Don't smoke</li>
+                            <li>Limit alcohol consumption</li>
+                            <li>Get regular checkups</li>
+                            <li>Stay hydrated</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <h3 class="info-title">
+                        <i class="fas fa-bullseye"></i> Healthy Ranges
+                    </h3>
+                    <div class="info-content">
+                        <div class="detail-item">
+                            <span class="detail-label">Creatinine:</span>
+                            <span class="detail-value">0.6-1.2 mg/dL</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Blood Urea:</span>
+                            <span class="detail-value">7-20 mg/dL</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">eGFR:</span>
+                            <span class="detail-value">>90 mL/min</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Blood Pressure:</span>
+                            <span class="detail-value"><120/80 mm Hg</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+                <p>Analyzing kidney function data...</p>
+                <small>Evaluating multiple kidney health parameters</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize range sliders
+        initializeRangeSliders();
+        
+        // Initialize form validation
+        initializeFormValidation();
+        
+        // Calculate GFR based on inputs
+        setupGFRCalculation();
+        
+        // Initialize current date
+        updateCurrentDateDisplay();
+    });
+    
+    function initializeRangeSliders() {
+        // Age slider
+        const ageSlider = document.getElementById('ageSlider');
+        const ageInput = document.getElementById('age');
+        const ageValue = document.getElementById('ageValue');
+        
+        ageSlider.addEventListener('input', function() {
+            ageInput.value = this.value;
+            ageValue.textContent = this.value;
+            updateSliderBackground(this);
+            calculateGFR();
+        });
+        
+        ageInput.addEventListener('input', function() {
+            ageSlider.value = this.value;
+            ageValue.textContent = this.value;
+            updateSliderBackground(ageSlider);
+            calculateGFR();
+        });
+        
+        // Blood Pressure slider
+        const bpSlider = document.getElementById('bpSlider');
+        const bpInput = document.getElementById('blood_pressure');
+        const bpValue = document.getElementById('bpValue');
+        
+        bpSlider.addEventListener('input', function() {
+            bpInput.value = this.value;
+            bpValue.textContent = this.value;
+            updateSliderBackground(this);
+        });
+        
+        bpInput.addEventListener('input', function() {
+            bpSlider.value = this.value;
+            bpValue.textContent = this.value;
+            updateSliderBackground(bpSlider);
+        });
+        
+        // Glucose slider
+        const glucoseSlider = document.getElementById('glucoseSlider');
+        const glucoseInput = document.getElementById('blood_glucose_random');
+        const glucoseValue = document.getElementById('glucoseValue');
+        
+        glucoseSlider.addEventListener('input', function() {
+            glucoseInput.value = this.value;
+            glucoseValue.textContent = this.value;
+            updateSliderBackground(this);
+        });
+        
+        glucoseInput.addEventListener('input', function() {
+            glucoseSlider.value = this.value;
+            glucoseValue.textContent = this.value;
+            updateSliderBackground(glucoseSlider);
+        });
+        
+        // PCV slider
+        const pcvSlider = document.getElementById('pcvSlider');
+        const pcvInput = document.getElementById('packed_cell_volume');
+        const pcvValue = document.getElementById('pcvValue');
+        
+        pcvSlider.addEventListener('input', function() {
+            pcvInput.value = this.value;
+            pcvValue.textContent = this.value + '%';
+            updateSliderBackground(this);
+        });
+        
+        pcvInput.addEventListener('input', function() {
+            pcvSlider.value = this.value;
+            pcvValue.textContent = this.value + '%';
+            updateSliderBackground(pcvSlider);
+        });
+        
+        // Initialize slider backgrounds
+        [ageSlider, bpSlider, glucoseSlider, pcvSlider].forEach(updateSliderBackground);
+    }
+    
+    function updateSliderBackground(slider) {
+        const percentage = (slider.value - slider.min) / (slider.max - slider.min) * 100;
+        slider.style.background = `linear-gradient(to right, var(--info-color) 0%, var(--info-color) ${percentage}%, var(--gray-300) ${percentage}%, var(--gray-300) 100%)`;
+    }
+    
+    function initializeFormValidation() {
+        const form = document.getElementById('kidneyForm');
+        const inputs = form.querySelectorAll('input[required], select[required]');
+        
+        inputs.forEach(input => {
+            input.addEventListener('change', function() {
+                validateField(this);
+                if (this.id === 'serum_creatinine') {
+                    calculateGFR();
+                }
+            });
+            
+            input.addEventListener('blur', function() {
+                validateField(this);
+            });
+        });
+        
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (validateForm()) {
+                submitPrediction();
+            }
+        });
+        
+        // Add keyboard shortcut
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + Enter to submit form
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                if (validateForm()) {
+                    submitPrediction();
+                }
+            }
+        });
+    }
+    
+    function validateField(field) {
+        const isValid = field.checkValidity();
+        
+        if (isValid) {
+            field.classList.remove('is-invalid');
+            field.classList.add('is-valid');
+        } else {
+            field.classList.remove('is-valid');
+            field.classList.add('is-invalid');
+        }
+        
+        return isValid;
+    }
+    
+    function validateForm() {
+        const form = document.getElementById('kidneyForm');
+        const inputs = form.querySelectorAll('input[required], select[required]');
+        let isValid = true;
+        
+        inputs.forEach(input => {
+            if (!validateField(input)) {
+                isValid = false;
+            }
+        });
+        
+        return isValid;
+    }
+    
+    function setupGFRCalculation() {
+        // Calculate GFR when creatinine changes
+        const creatinineInput = document.getElementById('serum_creatinine');
+        creatinineInput.addEventListener('input', calculateGFR);
+        
+        // Initial GFR calculation
+        calculateGFR();
+    }
+    
+    function calculateGFR() {
+        const age = parseFloat(document.getElementById('age').value) || 40;
+        const creatinine = parseFloat(document.getElementById('serum_creatinine').value) || 0.9;
+        
+        if (age && creatinine && creatinine > 0) {
+            // Simplified GFR calculation (CKD-EPI formula simplified)
+            let gfr;
+            if (age <= 40) {
+                gfr = 140 * Math.pow(creatinine, -0.411) * Math.pow(0.993, age);
+            } else {
+                gfr = 141 * Math.pow(Math.min(creatinine/0.9, 1), -0.411) * 
+                      Math.pow(Math.max(creatinine/0.9, 1), -1.209) * 
+                      Math.pow(0.993, age);
+            }
+            
+            // Ensure gfr is within reasonable bounds
+            gfr = Math.max(5, Math.min(150, gfr));
+            
+            // Update GFR estimate in results
+            document.getElementById('gfrEstimate').textContent = 
+                Math.round(gfr) + ' mL/min';
+            
+            // Color code GFR based on CKD stages
+            const gfrElement = document.getElementById('gfrEstimate');
+            if (gfr >= 90) {
+                gfrElement.style.color = 'var(--success-color)';
+            } else if (gfr >= 60) {
+                gfrElement.style.color = 'var(--warning-color)';
+            } else if (gfr >= 30) {
+                gfrElement.style.color = 'var(--danger-color)';
+            } else {
+                gfrElement.style.color = 'var(--danger-dark)';
+            }
+        }
+    }
+    
+    function submitPrediction() {
+        // Show loading overlay
+        document.getElementById('loadingOverlay').classList.add('active');
+        
+        // Disable submit button to prevent double submission
+        const submitBtn = document.getElementById('predictBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        
+        // Get form data
+        const formData = new FormData(document.getElementById('kidneyForm'));
+        const data = Object.fromEntries(formData.entries());
+        
+        // Convert numeric values
+        data.age = parseInt(data.age);
+        data.blood_pressure = parseInt(data.blood_pressure);
+        data.specific_gravity = parseFloat(data.specific_gravity);
+        data.albumin = parseInt(data.albumin);
+        data.sugar = parseInt(data.sugar);
+        data.blood_glucose_random = parseFloat(data.blood_glucose_random);
+        data.blood_urea = parseFloat(data.blood_urea);
+        data.serum_creatinine = parseFloat(data.serum_creatinine);
+        data.sodium = parseFloat(data.sodium);
+        data.potassium = parseFloat(data.potassium);
+        data.hemoglobin = parseFloat(data.hemoglobin);
+        data.packed_cell_volume = parseInt(data.packed_cell_volume);
+        data.white_blood_cell_count = parseInt(data.white_blood_cell_count);
+        data.red_blood_cell_count = parseFloat(data.red_blood_cell_count);
+        
+        // Submit via AJAX
+        fetch('/predict/ajax/predict/kidney/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            // Hide loading overlay and re-enable button
+            document.getElementById('loadingOverlay').classList.remove('active');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-kidneys"></i> Predict Kidney Disease Risk';
+            
+            if (result.success) {
+                displayResults(result);
+            } else {
+                showToast('Prediction failed: ' + result.error, 'error');
+            }
+        })
+        .catch(error => {
+            document.getElementById('loadingOverlay').classList.remove('active');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-kidneys"></i> Predict Kidney Disease Risk';
+            showToast('Network error. Please try again.', 'error');
+            console.error('Error:', error);
+        });
+    }
+    
+    function displayResults(result) {
+        // Show results container
+        const resultsContainer = document.getElementById('resultsContainer');
+        resultsContainer.classList.add('active');
+        
+        // Update result badge
+        const resultBadge = document.getElementById('resultBadge');
+        if (result.result.label.toLowerCase().includes('positive') || 
+            result.result.label.toLowerCase().includes('disease') ||
+            result.result.probability > 0.5) {
+            resultBadge.className = 'result-badge badge-positive';
+            resultBadge.textContent = 'High Risk';
+        } else {
+            resultBadge.className = 'result-badge badge-negative';
+            resultBadge.textContent = 'Low Risk';
+        }
+        
+        // Update probability
+        const probability = result.result.probability * 100;
+        document.getElementById('probabilityText').textContent = probability.toFixed(1) + '%';
+        document.getElementById('probabilityCircle').style.setProperty('--percentage', probability + '%');
+        
+        // Update confidence
+        document.getElementById('confidenceValue').textContent = 
+            (result.result.confidence * 100).toFixed(1) + '%';
+        
+        // Update prediction ID and date
+        const predictionId = result.prediction_id || Math.floor(Math.random() * 999) + 1;
+        document.getElementById('predictionId').textContent = '#KDY-' + predictionId.toString().padStart(3, '0');
+        
+        // Update model accuracy if available
+        if (result.model_accuracy) {
+            document.getElementById('modelAccuracy').textContent = 
+                (result.model_accuracy * 100).toFixed(1) + '%';
+        }
+        
+        // Update date to current
+        updateCurrentDateDisplay();
+        
+        // Calculate GFR
+        calculateGFR();
+        
+        // Update recommendations based on risk
+        updateRecommendations(probability);
+        
+        // Scroll to results
+        resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        
+        // Show success message
+        showToast('Kidney disease prediction completed!', 'success');
+    }
+    
+    function updateRecommendations(probability) {
+        const recommendationsList = document.getElementById('recommendationsList');
+        recommendationsList.innerHTML = '';
+        
+        const baseRecommendations = [
+            'Stay hydrated - drink 8 glasses of water daily',
+            'Monitor blood pressure regularly',
+            'Limit sodium intake to less than 2,300 mg/day',
+            'Maintain healthy blood sugar levels',
+            'Avoid NSAIDs and other kidney-damaging medications',
+            'Get regular kidney function tests',
+            'Exercise regularly and maintain healthy weight'
+        ];
+        
+        if (probability > 30) {
+            baseRecommendations.push('Consult a nephrologist for detailed evaluation');
+            baseRecommendations.push('Consider urine protein-to-creatinine ratio test');
+        }
+        
+        if (probability > 50) {
+            baseRecommendations.push('Immediate medical consultation recommended');
+            baseRecommendations.push('Consider renal ultrasound examination');
+            baseRecommendations.push('Monitor for symptoms like swelling and fatigue');
+        }
+        
+        baseRecommendations.forEach(rec => {
+            const li = document.createElement('li');
+            li.textContent = rec;
+            recommendationsList.appendChild(li);
+        });
+    }
+    
+    function resetForm() {
+        const form = document.getElementById('kidneyForm');
+        form.reset();
+        
+        // Reset range sliders
+        document.getElementById('ageSlider').value = 40;
+        document.getElementById('bpSlider').value = 120;
+        document.getElementById('glucoseSlider').value = 100;
+        document.getElementById('pcvSlider').value = 45;
+        
+        // Update displays
+        document.getElementById('ageValue').textContent = '40';
+        document.getElementById('bpValue').textContent = '120';
+        document.getElementById('glucoseValue').textContent = '100';
+        document.getElementById('pcvValue').textContent = '45%';
+        
+        // Update slider backgrounds
+        [document.getElementById('ageSlider'), 
+         document.getElementById('bpSlider'),
+         document.getElementById('glucoseSlider'),
+         document.getElementById('pcvSlider')].forEach(updateSliderBackground);
+        
+        // Set default values
+        document.getElementById('specific_gravity').value = '1.015';
+        document.getElementById('albumin').value = '1';
+        document.getElementById('sugar').value = '0';
+        document.getElementById('red_blood_cells').value = '0';
+        document.getElementById('pus_cell').value = '0';
+        document.getElementById('pus_cell_clumps').value = '0';
+        document.getElementById('bacteria').value = '0';
+        document.getElementById('blood_urea').value = '20';
+        document.getElementById('serum_creatinine').value = '0.9';
+        document.getElementById('sodium').value = '140';
+        document.getElementById('potassium').value = '4.0';
+        document.getElementById('hemoglobin').value = '14.0';
+        document.getElementById('white_blood_cell_count').value = '7000';
+        document.getElementById('red_blood_cell_count').value = '5.0';
+        document.getElementById('hypertension').value = '0';
+        document.getElementById('diabetes_mellitus').value = '0';
+        document.getElementById('coronary_artery_disease').value = '0';
+        document.getElementById('appetite').value = '0';
+        document.getElementById('pedal_edema').value = '0';
+        document.getElementById('anemia').value = '0';
+        
+        // Clear validation states
+        const inputs = form.querySelectorAll('input, select');
+        inputs.forEach(input => {
+            input.classList.remove('is-valid', 'is-invalid');
+        });
+        
+        // Hide results container
+        document.getElementById('resultsContainer').classList.remove('active');
+        
+        // Recalculate GFR
+        calculateGFR();
+        
+        showToast('Form reset successfully', 'info');
+    }
+    
+    function savePrediction() {
+        // Get prediction ID from results
+        const predictionId = document.getElementById('predictionId').textContent.replace('#KDY-', '');
+        
+        showToast('Saving prediction...', 'info');
+        
+        fetch(`/results/${predictionId}/save/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Prediction saved successfully!', 'success');
+            } else {
+                showToast('Failed to save prediction: ' + (data.error || 'Unknown error'), 'error');
+            }
+        })
+        .catch(error => {
+            showToast('Network error. Could not save prediction.', 'error');
+        });
+    }
+    
+    function generateReport() {
+        showToast('Generating kidney health report...', 'info');
+        
+        // Simulate report generation
+        setTimeout(() => {
+            const reportContent = `
+                Kidney Health Assessment Report
+                ==============================
+                
+                Prediction ID: ${document.getElementById('predictionId').textContent}
+                Date: ${document.getElementById('predictionDate').textContent}
+                
+                Results:
+                --------
+                Risk Level: ${document.getElementById('resultBadge').textContent}
+                Probability: ${document.getElementById('probabilityText').textContent}
+                Confidence: ${document.getElementById('confidenceValue').textContent}
+                GFR Estimate: ${document.getElementById('gfrEstimate').textContent}
+                Model Accuracy: ${document.getElementById('modelAccuracy').textContent}
+                
+                Recommendations:
+                ----------------
+                ${Array.from(document.querySelectorAll('#recommendationsList li'))
+                    .map(li => `• ${li.textContent}`).join('\n')}
+                
+                Generated by MEDIPREDICT
+                ${window.location.href}
+            `;
+            
+            // Create downloadable file
+            const blob = new Blob([reportContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `kidney-report-${document.getElementById('predictionId').textContent}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showToast('Kidney health report downloaded!', 'success');
+        }, 1500);
+    }
+    
+    function shareResults() {
+        const riskLevel = document.getElementById('resultBadge').textContent;
+        const probability = document.getElementById('probabilityText').textContent;
+        const gfr = document.getElementById('gfrEstimate').textContent;
+        const confidence = document.getElementById('confidenceValue').textContent;
+        
+        const shareText = `My Kidney Health Assessment from MEDIPREDICT:
+
+Risk Level: ${riskLevel}
+Probability: ${probability}
+GFR Estimate: ${gfr}
+Confidence: ${confidence}
+
+Check your kidney health at: ${window.location.origin}`;
+        
+        if (navigator.share) {
+            navigator.share({
+                title: 'My Kidney Health Assessment',
+                text: shareText,
+                url: window.location.href,
+            })
+            .then(() => showToast('Results shared successfully!', 'success'))
+            .catch(error => {
+                if (error.name !== 'AbortError') {
+                    // Fallback to clipboard if share fails
+                    copyToClipboard(shareText);
+                }
+            });
+        } else {
+            // Fallback: Copy to clipboard
+            copyToClipboard(shareText);
+        }
+    }
+    
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text)
+            .then(() => {
+                showToast('Results copied to clipboard!', 'success');
+            })
+            .catch(err => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    showToast('Results copied to clipboard!', 'success');
+                } catch (err) {
+                    showToast('Failed to copy results', 'error');
+                }
+                document.body.removeChild(textArea);
+            });
+    }
+    
+    function showToast(message, type = 'info') {
+        // Remove existing toasts
+        const existingToasts = document.querySelectorAll('.toast');
+        existingToasts.forEach(toast => toast.remove());
+        
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.innerHTML = `
+            <div class="toast-content">
+                <i class="fas ${getToastIcon(type)}"></i>
+                <span>${message}</span>
+            </div>
+            <button class="toast-close" onclick="this.parentElement.remove()">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        
+        // Add styles if not already present
+        if (!document.querySelector('#toast-styles')) {
+            const style = document.createElement('style');
+            style.id = 'toast-styles';
+            style.textContent = `
+                .toast {
+                    position: fixed;
+                    bottom: 2rem;
+                    right: 2rem;
+                    background: white;
+                    border-radius: 0.75rem;
+                    padding: 1rem 1.5rem;
+                    box-shadow: var(--shadow-lg);
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 1rem;
+                    min-width: 300px;
+                    max-width: 400px;
+                    z-index: 10000;
+                    animation: slideIn 0.3s ease;
+                    border-left: 4px solid var(--info-color);
+                }
+                
+                .toast-success {
+                    border-left-color: var(--success-color);
+                }
+                
+                .toast-error {
+                    border-left-color: var(--danger-color);
+                }
+                
+                .toast-warning {
+                    border-left-color: var(--warning-color);
+                }
+                
+                .toast-info {
+                    border-left-color: var(--info-color);
+                }
+                
+                .toast-content {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.75rem;
+                    flex: 1;
+                }
+                
+                .toast-content i {
+                    font-size: 1.25rem;
+                }
+                
+                .toast-success .toast-content i {
+                    color: var(--success-color);
+                }
+                
+                .toast-error .toast-content i {
+                    color: var(--danger-color);
+                }
+                
+                .toast-warning .toast-content i {
+                    color: var(--warning-color);
+                }
+                
+                .toast-info .toast-content i {
+                    color: var(--info-color);
+                }
+                
+                .toast-close {
+                    background: none;
+                    border: none;
+                    color: var(--gray-500);
+                    cursor: pointer;
+                    padding: 0.25rem;
+                    font-size: 1rem;
+                    border-radius: 0.25rem;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                
+                .toast-close:hover {
+                    background: var(--gray-100);
+                    color: var(--gray-700);
+                }
+                
+                @keyframes slideIn {
+                    from {
+                        transform: translateX(100%);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateX(0);
+                        opacity: 1;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        // Add toast to document
+        document.body.appendChild(toast);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.style.animation = 'slideOut 0.3s ease forwards';
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.remove();
+                    }
+                }, 300);
+            }
+        }, 5000);
+    }
+    
+    function getToastIcon(type) {
+        switch(type) {
+            case 'success': return 'fa-check-circle';
+            case 'error': return 'fa-exclamation-circle';
+            case 'warning': return 'fa-exclamation-triangle';
+            default: return 'fa-info-circle';
+        }
+    }
+    
+    function updateCurrentDateDisplay() {
+        const now = new Date();
+        const options = { 
+            month: 'short', 
+            day: 'numeric', 
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        };
+        const formattedDate = now.toLocaleDateString('en-US', options);
+        document.getElementById('predictionDate').textContent = formattedDate;
+    }
+</script>
+{% endblock %}

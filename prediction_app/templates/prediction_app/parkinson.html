@@ -1,0 +1,128 @@
+{% extends 'prediction_app/base.html' %}
+{% load static %}
+{% block title %}Parkinson's Prediction - MEDIPREDICT{% endblock %}
+{% block extra_css %}<style>
+.pred-page{padding:0 0 4rem;background:#f8fafc;min-height:100vh;}
+.pred-hero{background:linear-gradient(135deg,#7c3aed 0%,#8b5cf6 60%,#a78bfa 100%);padding:2.5rem 1.5rem;text-align:center;margin-bottom:2rem;}
+.pred-hero h1{font-size:2rem;font-weight:800;color:white;margin-bottom:.4rem;}
+.pred-hero p{color:rgba(255,255,255,.85);font-size:1rem;}
+.pred-hero-icon{width:64px;height:64px;background:rgba(255,255,255,.2);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:1.75rem;color:white;margin:0 auto 1rem;}
+.pred-layout{display:grid;grid-template-columns:1fr 320px;gap:1.5rem;max-width:1100px;margin:0 auto;padding:0 1.5rem;}
+@media(max-width:900px){.pred-layout{grid-template-columns:1fr;}}
+.pred-card{background:white;border-radius:1rem;box-shadow:0 4px 20px rgba(0,0,0,.07);overflow:hidden;}
+.pred-card-header{padding:1.25rem 1.5rem;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:.75rem;}
+.pred-card-header h2{font-size:1.05rem;font-weight:700;color:#111827;}
+.pred-card-icon{width:36px;height:36px;background:#ede9fe;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#7c3aed;font-size:.9rem;}
+.pred-card-body{padding:1.5rem;}
+.field-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:1rem;}
+.fg{display:flex;flex-direction:column;gap:.35rem;}
+.fg label{font-size:.78rem;font-weight:600;color:#374151;}
+.fg input,.fg select{padding:.65rem .875rem;border:1.5px solid #e5e7eb;border-radius:.5rem;font-size:.875rem;font-family:inherit;color:#111827;background:#fafafa;outline:none;transition:all .15s;width:100%;}
+.fg input:focus,.fg select:focus{border-color:#7c3aed;background:white;box-shadow:0 0 0 3px rgba(124,58,237,.1);}
+.fg .hint{font-size:.72rem;color:#9ca3af;}
+.fg .err{font-size:.72rem;color:#ef4444;}
+.section-sep{font-size:.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;padding:.75rem 0 .25rem;border-bottom:1px solid #f3f4f6;margin-bottom:.25rem;grid-column:1/-1;}
+.btn-predict{width:100%;padding:.875rem;background:linear-gradient(135deg,#7c3aed,#8b5cf6);color:white;border:none;border-radius:.625rem;font-size:1rem;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:.5rem;margin-top:1.25rem;transition:all .2s;}
+.btn-predict:hover{opacity:.92;transform:translateY(-1px);box-shadow:0 6px 20px rgba(124,58,237,.35);}
+.btn-reset-form{width:100%;padding:.7rem;background:#f3f4f6;color:#374151;border:1.5px solid #e5e7eb;border-radius:.625rem;font-size:.875rem;font-weight:600;cursor:pointer;font-family:inherit;margin-top:.5rem;transition:all .15s;}
+.btn-reset-form:hover{background:#e5e7eb;}
+.info-card{background:white;border-radius:1rem;box-shadow:0 4px 20px rgba(0,0,0,.07);padding:1.5rem;margin-bottom:1rem;}
+.info-card h3{font-size:.9rem;font-weight:700;color:#111827;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;}
+.info-card h3 i{color:#7c3aed;}
+.info-list{list-style:none;display:flex;flex-direction:column;gap:.5rem;}
+.info-list li{font-size:.82rem;color:#4b5563;display:flex;align-items:flex-start;gap:.5rem;line-height:1.5;}
+.info-list li::before{content:"•";color:#7c3aed;font-weight:700;flex-shrink:0;}
+.accuracy-badge{display:inline-flex;align-items:center;gap:.4rem;background:#ede9fe;color:#6d28d9;padding:.4rem .875rem;border-radius:999px;font-size:.8rem;font-weight:700;margin-bottom:1rem;}
+</style>{% endblock %}
+
+{% block content %}
+<div class="pred-page">
+  <div class="pred-hero">
+    <div class="pred-hero-icon"><i class="fas fa-brain"></i></div>
+    <h1>Parkinson's Disease Prediction</h1>
+    <p>Voice measurement analysis for early Parkinson's detection</p>
+  </div>
+  <div class="pred-layout">
+    <div>
+      {% if messages %}{% for m in messages %}
+      <div style="padding:.75rem 1rem;border-radius:.5rem;margin-bottom:1rem;background:{% if 'error' in m.tags %}#fef2f2;color:#991b1b;border:1px solid #fecaca{% else %}#f0fdf4;color:#166534;border:1px solid #bbf7d0{% endif %};">
+        <i class="fas fa-info-circle"></i> {{ m }}</div>{% endfor %}{% endif %}
+      <div class="pred-card">
+        <div class="pred-card-header">
+          <div class="pred-card-icon"><i class="fas fa-brain"></i></div>
+          <h2>Voice Measurement Parameters</h2>
+        </div>
+        <div class="pred-card-body">
+          <form method="POST">
+            {% csrf_token %}
+            <div class="field-grid">
+              <div class="section-sep">Frequency Measures</div>
+              <div class="fg"><label>MDVP:Fo(Hz) — Avg Vocal Frequency</label>{{ form.mdvp_fo }}<span class="hint">Typical: 80–260 Hz</span>{% if form.mdvp_fo.errors %}<span class="err">{{ form.mdvp_fo.errors|join:", " }}</span>{% endif %}</div>
+              <div class="fg"><label>MDVP:Fhi(Hz) — Max Frequency</label>{{ form.mdvp_fhi }}{% if form.mdvp_fhi.errors %}<span class="err">{{ form.mdvp_fhi.errors|join:", " }}</span>{% endif %}</div>
+              <div class="fg"><label>MDVP:Flo(Hz) — Min Frequency</label>{{ form.mdvp_flo }}{% if form.mdvp_flo.errors %}<span class="err">{{ form.mdvp_flo.errors|join:", " }}</span>{% endif %}</div>
+
+              <div class="section-sep">Jitter Measures</div>
+              <div class="fg"><label>MDVP:Jitter(%)</label>{{ form.mdvp_jitter_percent }}{% if form.mdvp_jitter_percent.errors %}<span class="err">{{ form.mdvp_jitter_percent.errors|join:", " }}</span>{% endif %}</div>
+              <div class="fg"><label>MDVP:Jitter(Abs)</label>{{ form.mdvp_jitter_abs }}{% if form.mdvp_jitter_abs.errors %}<span class="err">{{ form.mdvp_jitter_abs.errors|join:", " }}</span>{% endif %}</div>
+              <div class="fg"><label>MDVP:RAP</label>{{ form.mdvp_rap }}{% if form.mdvp_rap.errors %}<span class="err">{{ form.mdvp_rap.errors|join:", " }}</span>{% endif %}</div>
+              <div class="fg"><label>MDVP:PPQ</label>{{ form.mdvp_ppq }}{% if form.mdvp_ppq.errors %}<span class="err">{{ form.mdvp_ppq.errors|join:", " }}</span>{% endif %}</div>
+              <div class="fg"><label>Jitter:DDP</label>{{ form.jitter_ddp }}{% if form.jitter_ddp.errors %}<span class="err">{{ form.jitter_ddp.errors|join:", " }}</span>{% endif %}</div>
+
+              <div class="section-sep">Shimmer Measures</div>
+              <div class="fg"><label>MDVP:Shimmer</label>{{ form.mdvp_shimmer }}{% if form.mdvp_shimmer.errors %}<span class="err">{{ form.mdvp_shimmer.errors|join:", " }}</span>{% endif %}</div>
+              <div class="fg"><label>MDVP:Shimmer(dB)</label>{{ form.mdvp_shimmer_db }}{% if form.mdvp_shimmer_db.errors %}<span class="err">{{ form.mdvp_shimmer_db.errors|join:", " }}</span>{% endif %}</div>
+              <div class="fg"><label>Shimmer:APQ3</label>{{ form.shimmer_apq3 }}{% if form.shimmer_apq3.errors %}<span class="err">{{ form.shimmer_apq3.errors|join:", " }}</span>{% endif %}</div>
+              <div class="fg"><label>Shimmer:APQ5</label>{{ form.shimmer_apq5 }}{% if form.shimmer_apq5.errors %}<span class="err">{{ form.shimmer_apq5.errors|join:", " }}</span>{% endif %}</div>
+              <div class="fg"><label>MDVP:APQ</label>{{ form.mdvp_apq }}{% if form.mdvp_apq.errors %}<span class="err">{{ form.mdvp_apq.errors|join:", " }}</span>{% endif %}</div>
+              <div class="fg"><label>Shimmer:DDA</label>{{ form.shimmer_dda }}{% if form.shimmer_dda.errors %}<span class="err">{{ form.shimmer_dda.errors|join:", " }}</span>{% endif %}</div>
+
+              <div class="section-sep">Nonlinear Measures</div>
+              <div class="fg"><label>NHR — Noise-to-Harmonics Ratio</label>{{ form.nhr }}{% if form.nhr.errors %}<span class="err">{{ form.nhr.errors|join:", " }}</span>{% endif %}</div>
+              <div class="fg"><label>HNR — Harmonics-to-Noise Ratio</label>{{ form.hnr }}{% if form.hnr.errors %}<span class="err">{{ form.hnr.errors|join:", " }}</span>{% endif %}</div>
+              <div class="fg"><label>RPDE</label>{{ form.rpde }}{% if form.rpde.errors %}<span class="err">{{ form.rpde.errors|join:", " }}</span>{% endif %}</div>
+              <div class="fg"><label>DFA</label>{{ form.dfa }}{% if form.dfa.errors %}<span class="err">{{ form.dfa.errors|join:", " }}</span>{% endif %}</div>
+              <div class="fg"><label>Spread1</label>{{ form.spread1 }}{% if form.spread1.errors %}<span class="err">{{ form.spread1.errors|join:", " }}</span>{% endif %}</div>
+              <div class="fg"><label>Spread2</label>{{ form.spread2 }}{% if form.spread2.errors %}<span class="err">{{ form.spread2.errors|join:", " }}</span>{% endif %}</div>
+              <div class="fg"><label>D2</label>{{ form.d2 }}{% if form.d2.errors %}<span class="err">{{ form.d2.errors|join:", " }}</span>{% endif %}</div>
+              <div class="fg"><label>PPE — Pitch Period Entropy</label>{{ form.ppe }}{% if form.ppe.errors %}<span class="err">{{ form.ppe.errors|join:", " }}</span>{% endif %}</div>
+            </div>
+            <button type="submit" class="btn-predict"><i class="fas fa-brain"></i> Predict Parkinson's Risk</button>
+            <button type="reset" class="btn-reset-form"><i class="fas fa-redo"></i> Reset Form</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="info-card">
+        <div class="accuracy-badge"><i class="fas fa-check-circle"></i> 89% Model Accuracy</div>
+        <h3><i class="fas fa-info-circle"></i> About Parkinson's</h3>
+        <ul class="info-list">
+          <li>A progressive nervous system disorder affecting movement</li>
+          <li>Voice changes are among the earliest detectable signs</li>
+          <li>Affects 1% of people over age 60</li>
+          <li>No cure, but early detection improves management</li>
+        </ul>
+      </div>
+      <div class="info-card">
+        <h3><i class="fas fa-microphone"></i> Voice Analysis</h3>
+        <ul class="info-list">
+          <li>Jitter: frequency variation in voice</li>
+          <li>Shimmer: amplitude variation in voice</li>
+          <li>HNR: ratio of harmonic to noise components</li>
+          <li>RPDE/DFA: nonlinear signal complexity measures</li>
+        </ul>
+      </div>
+      <div class="info-card">
+        <h3><i class="fas fa-exclamation-triangle"></i> Early Symptoms</h3>
+        <ul class="info-list">
+          <li>Tremor in hands or fingers</li>
+          <li>Slowed movement (bradykinesia)</li>
+          <li>Rigid muscles</li>
+          <li>Soft or slurred speech</li>
+          <li>Loss of automatic movements</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,335 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}You're Offline - MediPredict{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6 text-center">
+            <!-- Offline Illustration -->
+            <div class="mb-4">
+                <img src="{% static 'images/offline.svg' %}" alt="Offline" class="img-fluid" style="max-height: 300px;">
+            </div>
+            
+            <!-- Offline Message -->
+            <h1 class="display-4 fw-bold text-warning mb-3">You're Offline</h1>
+            <h2 class="h3 mb-4">No Internet Connection</h2>
+            <p class="lead text-muted mb-5">
+                It looks like you've lost your internet connection. 
+                Some features may not be available until you reconnect.
+            </p>
+            
+            <!-- Connection Status -->
+            <div class="alert alert-warning mb-5">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-wifi-off me-3 fs-4"></i>
+                    <div>
+                        <strong>Connection Status:</strong> 
+                        <span id="connectionStatus">Checking...</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Available Features -->
+            <div class="card border-0 shadow-sm mb-5">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Available Offline</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-check-circle-fill text-success me-3 fs-4"></i>
+                                <div>
+                                    <div class="fw-bold">View Saved Predictions</div>
+                                    <small class="text-muted">Previously saved results</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-check-circle-fill text-success me-3 fs-4"></i>
+                                <div>
+                                    <div class="fw-bold">View Health Reports</div>
+                                    <small class="text-muted">Downloaded reports</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-x-circle-fill text-danger me-3 fs-4"></i>
+                                <div>
+                                    <div class="fw-bold">New Predictions</div>
+                                    <small class="text-muted">Requires internet</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-x-circle-fill text-danger me-3 fs-4"></i>
+                                <div>
+                                    <div class="fw-bold">Live Data Sync</div>
+                                    <small class="text-muted">Requires internet</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="d-flex flex-column flex-md-row justify-content-center gap-3 mb-5">
+                <button onclick="window.location.reload()" class="btn btn-primary btn-lg px-4 py-3">
+                    <i class="bi bi-arrow-clockwise me-2"></i> Retry Connection
+                </button>
+                {% if user.is_authenticated %}
+                <a href="{% url 'prediction_app:history' %}" class="btn btn-outline-primary btn-lg px-4 py-3">
+                    <i class="bi bi-clock-history me-2"></i> View Saved History
+                </a>
+                {% endif %}
+                <button onclick="goBack()" class="btn btn-outline-secondary btn-lg px-4 py-3">
+                    <i class="bi bi-arrow-left me-2"></i> Go Back
+                </button>
+            </div>
+            
+            <!-- Troubleshooting Steps -->
+            <div class="accordion mb-5" id="offlineAccordion">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#offlineTroubleshooting" aria-expanded="false">
+                            <i class="bi bi-wrench me-2"></i> Connection Troubleshooting
+                        </button>
+                    </h2>
+                    <div id="offlineTroubleshooting" class="accordion-collapse collapse" 
+                         data-bs-parent="#offlineAccordion">
+                        <div class="accordion-body">
+                            <ol class="mb-0">
+                                <li class="mb-2">
+                                    <strong>Check your Wi-Fi:</strong> Make sure you're connected to Wi-Fi 
+                                    and the signal is strong.
+                                </li>
+                                <li class="mb-2">
+                                    <strong>Check mobile data:</strong> If you're using mobile data, 
+                                    ensure it's turned on and you have sufficient data.
+                                </li>
+                                <li class="mb-2">
+                                    <strong>Airplane mode:</strong> Check if airplane mode is turned off.
+                                </li>
+                                <li class="mb-2">
+                                    <strong>Restart device:</strong> Sometimes simply restarting your 
+                                    device can fix connection issues.
+                                </li>
+                                <li>
+                                    <strong>Check other websites:</strong> Try visiting other websites 
+                                    to see if the issue is specific to MediPredict.
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Network Check -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Network Diagnostics</h5>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <div id="connectionSpeed" class="fw-bold mb-1">--</div>
+                                <small class="text-muted">Connection Speed</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <div id="connectionType" class="fw-bold mb-1">--</div>
+                                <small class="text-muted">Connection Type</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <div id="connectionStrength" class="fw-bold mb-1">--</div>
+                                <small class="text-muted">Signal Strength</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="progress mb-3" style="height: 10px;">
+                        <div id="connectionProgress" class="progress-bar bg-success" 
+                             role="progressbar" style="width: 0%"></div>
+                    </div>
+                    <button onclick="runNetworkTest()" class="btn btn-sm btn-outline-primary w-100">
+                        <i class="bi bi-lightning-charge me-1"></i> Run Network Test
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cached Content Section -->
+{% if user.is_authenticated %}
+<div class="bg-light py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <h3 class="text-center h4 mb-4">Your Cached Content</h3>
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body text-center">
+                                <i class="bi bi-file-earmark-text text-primary fs-1 mb-3"></i>
+                                <h6 class="fw-bold mb-2">Recent Predictions</h6>
+                                <p class="text-muted small mb-3">View your last 10 predictions</p>
+                                <button onclick="viewCachedPredictions()" class="btn btn-sm btn-outline-primary">
+                                    View Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body text-center">
+                                <i class="bi bi-graph-up text-primary fs-1 mb-3"></i>
+                                <h6 class="fw-bold mb-2">Health Statistics</h6>
+                                <p class="text-muted small mb-3">Previously loaded statistics</p>
+                                <button onclick="viewCachedStats()" class="btn btn-sm btn-outline-primary">
+                                    View Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body text-center">
+                                <i class="bi bi-journal-text text-primary fs-1 mb-3"></i>
+                                <h6 class="fw-bold mb-2">Saved Reports</h6>
+                                <p class="text-muted small mb-3">Access downloaded reports</p>
+                                <button onclick="viewCachedReports()" class="btn btn-sm btn-outline-primary">
+                                    View Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Network connection monitoring
+    let connectionCheckInterval;
+    
+    function updateConnectionStatus() {
+        const statusElement = document.getElementById('connectionStatus');
+        const progressBar = document.getElementById('connectionProgress');
+        
+        if (navigator.onLine) {
+            statusElement.textContent = 'Connected';
+            statusElement.className = 'text-success';
+            progressBar.style.width = '100%';
+            progressBar.className = 'progress-bar bg-success';
+            
+            // Auto-redirect after 3 seconds if connected
+            setTimeout(() => {
+                window.location.href = '{% url "home" %}';
+            }, 3000);
+        } else {
+            statusElement.textContent = 'Disconnected';
+            statusElement.className = 'text-danger';
+            progressBar.style.width = '0%';
+            progressBar.className = 'progress-bar bg-danger';
+        }
+    }
+    
+    function runNetworkTest() {
+        const speedElement = document.getElementById('connectionSpeed');
+        const typeElement = document.getElementById('connectionType');
+        const strengthElement = document.getElementById('connectionStrength');
+        
+        // Simulate network test (in real app, this would make actual network requests)
+        speedElement.textContent = 'Testing...';
+        typeElement.textContent = 'Detecting...';
+        strengthElement.textContent = 'Checking...';
+        
+        setTimeout(() => {
+            if (navigator.onLine) {
+                speedElement.textContent = 'Good';
+                typeElement.textContent = navigator.connection?.effectiveType || 'Unknown';
+                strengthElement.textContent = 'Strong';
+            } else {
+                speedElement.textContent = 'None';
+                typeElement.textContent = 'Offline';
+                strengthElement.textContent = 'No Signal';
+            }
+        }, 1500);
+    }
+    
+    function goBack() {
+        if (window.history.length > 1) {
+            window.history.back();
+        } else {
+            window.location.href = '{% url "home" %}';
+        }
+    }
+    
+    function viewCachedPredictions() {
+        // Check if we have cached predictions
+        if (typeof(Storage) !== "undefined" && localStorage.getItem('cached_predictions')) {
+            // In a real app, this would load from cache
+            alert('Loading cached predictions...');
+        } else {
+            alert('No cached predictions found. Please reconnect to load data.');
+        }
+    }
+    
+    function viewCachedStats() {
+        // Similar implementation for stats
+        alert('This feature requires internet connection to load fresh data.');
+    }
+    
+    function viewCachedReports() {
+        // Similar implementation for reports
+        alert('Please reconnect to access your reports.');
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        updateConnectionStatus();
+        runNetworkTest();
+        
+        // Update connection status periodically
+        connectionCheckInterval = setInterval(updateConnectionStatus, 3000);
+        
+        // Listen for online/offline events
+        window.addEventListener('online', updateConnectionStatus);
+        window.addEventListener('offline', updateConnectionStatus);
+        
+        // Track offline events
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'offline_mode', {
+                'page_path': window.location.pathname,
+                'user_status': '{% if user.is_authenticated %}authenticated{% else %}anonymous{% endif %}'
+            });
+        }
+    });
+    
+    // Clean up interval on page unload
+    window.addEventListener('beforeunload', function() {
+        if (connectionCheckInterval) {
+            clearInterval(connectionCheckInterval);
+        }
+    });
+</script>
+
+<!-- Service Worker Check -->
+<script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then(function(registration) {
+            console.log('Service Worker is ready for offline support');
+        });
+    }
+</script>
+{% endblock %}
