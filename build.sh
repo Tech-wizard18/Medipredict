@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -o errexit
 
+export DJANGO_SETTINGS_MODULE=disease_app.settings.production
+
 echo "==> Installing dependencies..."
 pip install -r requirements.txt
 

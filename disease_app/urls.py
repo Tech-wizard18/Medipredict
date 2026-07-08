@@ -102,23 +102,16 @@ admin.site.index_title = 'Welcome to MEDIPREDICT Admin Portal'
 
 # Debug URLs
 if settings.DEBUG:
-    import debug_toolbar
-
-    urlpatterns += [
-        path('__debug__/', include(debug_toolbar.urls)),
-        path('api/docs/', TemplateView.as_view(template_name='api_docs.html'), name='api_docs'),
-        path('test-email/', TemplateView.as_view(template_name='test_email.html'), name='test_email'),
-    ]
+    try:
+        import debug_toolbar
+        urlpatterns += [
+            path('__debug__/', include(debug_toolbar.urls)),
+        ]
+    except ImportError:
+        pass
 
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
-    urlpatterns += [
-        path('400/', TemplateView.as_view(template_name='error_pages/400.html')),
-        path('403/', TemplateView.as_view(template_name='error_pages/403.html')),
-        path('404/', TemplateView.as_view(template_name='error_pages/404.html')),
-        path('500/', TemplateView.as_view(template_name='error_pages/500.html')),
-    ]
 
 # Error Handlers
 handler400 = 'disease_app.error_handlers.bad_request'

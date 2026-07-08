@@ -9,7 +9,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 # Environment variables
 env = environ.Env()
-environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
+env_file = os.path.join(BASE_DIR, ".env")
+if os.path.exists(env_file):
+    environ.Env.read_env(env_file)
 
 # SECURITY
 SECRET_KEY = env(
@@ -43,6 +45,8 @@ INSTALLED_APPS = [
     "corsheaders",
     "crispy_forms",
     "crispy_bootstrap5",
+    "health_check",
+    "health_check.db",
 
     # Local apps
     "prediction_app",
@@ -126,9 +130,15 @@ USE_TZ = True
 # Static files
 # ---------------------------
 STATIC_URL = "static/"
-STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+# Only include STATICFILES_DIRS if the directory exists
+_STATIC_DIR = BASE_DIR / "static"
+if _STATIC_DIR.exists():
+    STATICFILES_DIRS = [_STATIC_DIR]
+else:
+    STATICFILES_DIRS = []
 
 # ---------------------------
 # Media files
