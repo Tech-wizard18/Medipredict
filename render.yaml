@@ -1,9 +1,9 @@
 services:
   - type: web
     name: medipredict
-    env: python
+    runtime: python
     buildCommand: "./build.sh"
-    startCommand: "gunicorn disease_app.wsgi:application --bind 0.0.0.0:$PORT"
+    startCommand: "gunicorn disease_app.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120"
     envVars:
       - key: DJANGO_SETTINGS_MODULE
         value: disease_app.settings.production
@@ -15,6 +15,8 @@ services:
         value: https://*.onrender.com
       - key: DEBUG
         value: "False"
+      - key: PYTHON_VERSION
+        value: "3.11.0"
       - key: DATABASE_URL
         fromDatabase:
           name: medipredict-db
@@ -24,3 +26,4 @@ databases:
   - name: medipredict-db
     databaseName: medipredict
     user: medipredict
+    plan: free
