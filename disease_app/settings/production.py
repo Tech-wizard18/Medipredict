@@ -45,8 +45,8 @@ CSRF_TRUSTED_ORIGINS = env.list(
     ]
 )
 
-# Static files
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# Static files - use CompressedStaticFilesStorage (no manifest, more forgiving)
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # Cache — use local memory (no Redis needed)
 CACHES = {
