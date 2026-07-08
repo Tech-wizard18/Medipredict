@@ -4,7 +4,11 @@ import dj_database_url
 
 DEBUG = False
 
-ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
+ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=[
+    'localhost',
+    '127.0.0.1',
+    '.onrender.com',  # Allow all render subdomains as fallback
+])
 
 # Database — Render provides DATABASE_URL
 DATABASE_URL = os.environ.get('DATABASE_URL')
@@ -31,10 +35,14 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# CSRF — add your Render domain here
+# CSRF
 CSRF_TRUSTED_ORIGINS = env.list(
     'CSRF_TRUSTED_ORIGINS',
-    default=['https://localhost', 'https://127.0.0.1']
+    default=[
+        'https://localhost',
+        'https://127.0.0.1',
+        'https://*.onrender.com',  # Allow all render subdomains as fallback
+    ]
 )
 
 # Static files
