@@ -1,52 +1,90 @@
-# MEDIPREDICT - Disease Prediction System
+🩺 MediPredict – AI-Based Disease Prediction System
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Python](https://img.shields.io/badge/Python-3.11%2B-blue)](https://www.python.org/)
-[![Django](https://img.shields.io/badge/Django-4.2%2B-green)](https://www.djangoproject.com/)
-[![Status](https://img.shields.io/badge/Status-Active-brightgreen)]()
+MediPredict is a collaborative AI-powered healthcare web application that helps users assess potential health risks based on the symptoms they provide. The application offers early health insights and recommendations through an intuitive and responsive user interface.
 
-## 🏥 Overview
+«Note: This is a team project. My primary contribution was the frontend development, including UI implementation, responsive design, and frontend integration.»
 
-MEDIPREDICT is a comprehensive disease prediction system that uses machine learning models to predict various diseases based on patient data. The system supports multiple diseases and provides a user-friendly interface for both patients and healthcare professionals.
+---
 
-## ✨ Features
+🚀 Features
 
-### 🎯 Core Features
-- **Multi-Disease Prediction**: Diabetes, Heart Disease, Kidney Disease, Parkinson's, Breast Cancer, Liver Disease
-- **Real-time Predictions**: Instant ML model predictions
-- **User Dashboard**: Personalized health insights
-- **Prediction History**: Track all previous predictions
-- **Export Reports**: Download predictions as PDF/Excel
+- Symptom-based disease prediction
+- Clean and responsive user interface
+- User-friendly symptom input forms
+- Instant prediction results
+- Modern healthcare-inspired design
+- Frontend integrated with backend prediction APIs
 
-### 👥 User Management
-- Patient registration and login
-- Profile management
-- Secure authentication
-- Role-based access control
+---
 
-### 🩺 Medical Features
-- Doctor consultation scheduling
-- Prescription management
-- Medical history tracking
-- Appointment reminders
+🛠️ Tech Stack
 
-### 📊 Admin Features
-- User management
-- Prediction analytics
-- System monitoring
-- Data export
+Frontend (My Contribution)
 
-## 🚀 Quick Start
+- HTML5
+- CSS3
+- JavaScript
+- Responsive Web Design
 
-### Prerequisites
-- Python 3.11+
-- PostgreSQL 14+
-- Redis 7+
-- Node.js 18+ (for frontend assets)
+Backend & AI/ML
 
-### Installation
+- Python
+- Machine Learning Models
+- REST API
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/medipredict.git
-   cd medipredict
+---
+
+💻 My Contribution
+
+As the Frontend Developer, I was responsible for:
+
+- Designing and implementing the application's user interface.
+- Building responsive pages for desktop and mobile devices.
+- Creating user-friendly forms for symptom input.
+- Integrating frontend components with backend APIs.
+- Improving overall user experience and navigation.
+
+---
+
+📌 Project Workflow
+
+1. User enters symptoms.
+2. Frontend validates user input.
+3. Request is sent to the backend prediction service.
+4. AI/ML model analyzes the symptoms.
+5. Prediction results are displayed with recommendations.
+
+---
+
+📷 Screenshots
+
+Add screenshots of the application here.
+
+---
+
+⚙️ Installation
+
+git clone https://github.com/your-username/medipredict.git
+cd medipredict
+
+Follow the project-specific setup instructions to install dependencies and run the application.
+
+---
+
+👥 Team Project
+
+This project was developed collaboratively.
+
+My Role
+
+- Frontend Development
+- UI Design
+- Frontend Integration
+
+The backend development and AI/ML implementation were completed by other team members.
+
+---
+
+📄 Disclaimer
+
+This application is intended for educational and research purposes only. It does not replace professional medical advice, diagnosis, or treatment.
